@@ -32,7 +32,7 @@ import { useRouter } from "next/navigation";
 import { PassCalculator } from "@/components/feature/Dashboard/PassCalculator";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-import { getProviderProfile, getProviderProfileWithReviews, updateProviderSchedule, updateProviderBio, updateProviderContactDetails, updateProviderProfile, getProviderRequests, createProviderRequest, createBooking, uploadProviderDocument, getProviderBookings, updateBookingStatus, updateBookingFinancials } from "@/lib/api";
+import { getProviderProfile, getProviderProfileWithReviews, updateProviderSchedule, updateProviderBio, updateProviderContactDetails, updateProviderProfile, getProviderRequests, createProviderRequest, createBooking, uploadProviderDocument, getProviderBookings, updateBookingStatus, updateBookingFinancials, getProviderCredits, topUpCredits, updateBookingAndDeductCredit } from "@/lib/api";
 import { Star } from "lucide-react"; // Import Star
 import { Therapist } from "@/lib/data";
 import { sendBookingConfirmation } from "@/lib/email";
@@ -78,6 +78,8 @@ export default function DashboardClient() {
     const [contactPreference, setContactPreference] = useState("any");
 
     // UI State
+    const [credits, setCredits] = useState<number>(0);
+    const [isTopUpOpen, setIsTopUpOpen] = useState(false);
     const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
     const [offlineBooking, setOfflineBooking] = useState({ clientName: "", date: "", service: "", recurrence: "none" });
     const [isSaved, setIsSaved] = useState(false);
@@ -121,6 +123,10 @@ export default function DashboardClient() {
                     // Fetch Bookings
                     const myBookings = await getProviderBookings(authUser.id);
                     setBookings(myBookings);
+
+                    // Fetch Credits
+                    const myCredits = await getProviderCredits(authUser.id);
+                    setCredits(myCredits);
                 }
                 setLoadingData(false);
             }
@@ -195,7 +201,13 @@ export default function DashboardClient() {
     const handleStatusUpdate = async (bookingId: string, newStatus: 'confirmed' | 'rejected') => {
         setActionLoading(bookingId);
         try {
-            await updateBookingStatus(bookingId, newStatus);
+            if (newStatus === 'confirmed') {
+                // Deduct Credit Logic
+                await updateBookingAndDeductCredit(bookingId, authUser.id);
+                setCredits(prev => prev - 1);
+            } else {
+                await updateBookingStatus(bookingId, newStatus);
+            }
 
             // Refresh local state
             setBookings(prev => prev.map(b =>
@@ -330,6 +342,60 @@ export default function DashboardClient() {
                         <h1 className="text-xl font-bold text-eucalyptus">PH Home Service <span className="text-black font-normal opacity-50">| Dashboard</span></h1>
                     </div>
                     <div className="flex items-center gap-4">
+                        {/* Credit Display */}
+                        <div className="hidden md:flex items-center gap-2 bg-slate-100 rounded-full px-3 py-1 text-sm font-medium">
+                            <span className={credits > 0 ? "text-eucalyptus" : "text-red-500"}>
+                                {credits} Credits
+                            </span>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 hover:bg-transparent text-eucalyptus"
+                                onClick={() => setIsTopUpOpen(true)}
+                            >
+                                <span className="text-lg font-bold">+</span>
+                            </Button>
+                        </div>
+
+                        {/* Top Up Dialog */}
+                        <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
+                            <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>Top Up Credits</DialogTitle>
+                                    <DialogDescription>
+                                        You need 1 credit to accept a booking.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid grid-cols-2 gap-4 py-4">
+                                    {[
+                                        { qty: 10, price: 200 },
+                                        { qty: 25, price: 450 },
+                                        { qty: 50, price: 850 },
+                                        { qty: 100, price: 1600 },
+                                    ].map((pack) => (
+                                        <Button
+                                            key={pack.qty}
+                                            variant="outline"
+                                            className="h-24 flex flex-col gap-1 hover:border-eucalyptus hover:bg-eucalyptus/5"
+                                            onClick={async () => {
+                                                if (!authUser) return;
+                                                // MOCK PAYMENT
+                                                if (confirm(`Pay PHP ${pack.price} for ${pack.qty} credits?`)) {
+                                                    await topUpCredits(authUser.id, pack.qty);
+                                                    setCredits(prev => prev + pack.qty);
+                                                    setIsTopUpOpen(false);
+                                                    alert("Payment Successful! Credits added.");
+                                                }
+                                            }}
+                                        >
+                                            <span className="text-2xl font-bold">{pack.qty}</span>
+                                            <span className="text-sm text-muted-foreground">Credits</span>
+                                            <span className="text-xs font-medium text-eucalyptus">PHP {pack.price}</span>
+                                        </Button>
+                                    ))}
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                         <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
                                 <AvatarImage src={user.image} />

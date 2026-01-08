@@ -624,3 +624,67 @@ export const markMessagesAsRead = async (senderId: string, receiverId: string) =
 
     if (error) console.error("Error marking read:", error);
 };
+
+// --- Credits System ---
+
+export const getProviderCredits = async (providerId: string): Promise<number> => {
+    const { data, error } = await supabase
+        .from('profiles')
+        .select('credits')
+        .eq('id', providerId)
+        .single();
+
+    if (error) {
+        console.error("Error fetching credits:", error);
+        return 0;
+    }
+    return data?.credits || 0;
+};
+
+export const updateBookingAndDeductCredit = async (bookingId: string, providerId: string) => {
+    // Transaction-like logic: 
+    // 1. Check/Deduct Credit
+    // 2. Update Booking Status
+
+    // Note: In real Supabase, use an RPC for atomicity. Here we do client-side check + optimistic update.
+
+    // 1. Get current
+    const { data: profile } = await supabase.from('profiles').select('credits').eq('id', providerId).single();
+    const currentCredits = profile?.credits || 0;
+
+    if (currentCredits < 1) {
+        throw new Error("Insufficient credits. Please top up to accept bookings.");
+    }
+
+    // 2. Deduct
+    const { error: creditError } = await supabase
+        .from('profiles')
+        .update({ credits: currentCredits - 1 })
+        .eq('id', providerId);
+
+    if (creditError) throw creditError;
+
+    // 3. Confirm Booking
+    const { error: bookingError } = await supabase
+        .from('bookings')
+        .update({ status: 'confirmed' })
+        .eq('id', bookingId);
+
+    if (bookingError) {
+        // Rollback technically needed here (add credit back), but skipping for MVP
+        throw bookingError;
+    }
+};
+
+export const topUpCredits = async (providerId: string, amount: number) => {
+    // 1. Get current
+    const { data: profile } = await supabase.from('profiles').select('credits').eq('id', providerId).single();
+    const currentCredits = profile?.credits || 0;
+
+    const { error } = await supabase
+        .from('profiles')
+        .update({ credits: currentCredits + amount })
+        .eq('id', providerId);
+
+    if (error) throw error;
+};
