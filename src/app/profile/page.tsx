@@ -16,6 +16,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReviewModal } from "@/components/feature/Reviews/ReviewModal";
 
 export default function ProfilePage() {
+    const { user, isLoading, signOut } = useAuth();
+    const router = useRouter();
+    const [bookings, setBookings] = useState<any[]>([]);
+    const [loadingBookings, setLoadingBookings] = useState(true);
+    const [detectedRole, setDetectedRole] = useState<string | null>(null);
     const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [selectedBookingForReview, setSelectedBookingForReview] = useState<any>(null);
     const [profileName, setProfileName] = useState<string | null>(null);
