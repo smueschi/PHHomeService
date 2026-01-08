@@ -16,6 +16,7 @@ export default function ProfilePage() {
     const router = useRouter();
     const [bookings, setBookings] = useState<any[]>([]);
     const [loadingBookings, setLoadingBookings] = useState(true);
+    const [detectedRole, setDetectedRole] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -26,12 +27,31 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchHistory = async () => {
             if (user) {
-                // Fetch Role if not in metadata
-                if (!user.user_metadata?.role) {
-                    // We can fetch from profiles table here if needed, 
-                    // but for now let's rely on what AuthProvider gives or what we can infer.
-                    // Actually, let's just fetch it to be safe since we are relying on it for the Menu.
-                    // Note: You'd need to import supabase client here.
+                // Determine Role: metadata or DB fetch
+                let currentRole = user.user_metadata?.role || (user as any).role;
+
+                // If not in metadata, fetch from DB to be sure
+                if (!currentRole) {
+                    try {
+                        // Dynamically import to avoid cyclic deps if any, or just use api
+                        const { getProviderProfile } = await import("@/lib/api");
+                        const profile = await getProviderProfile(user.id);
+                        if (profile && profile.role) {
+                            currentRole = profile.role;
+                            // Optional: Update local user object for this session if possible, or just local state
+                            // (user as any).role = profile.role; 
+                        }
+                    } catch (e) {
+                        console.error("Failed to fetch role", e);
+                    }
+                }
+
+                // Force state update if needed, but for now we rely on the render check
+                // We'll expose this role to the render via a state if it wasn't there before
+                if (currentRole === 'provider') {
+                    // We need to ensure the render sees this. 
+                    // Since 'user' object reference isn't changing, let's add a local state for role
+                    setDetectedRole('provider');
                 }
 
                 setLoadingBookings(true);
@@ -71,7 +91,7 @@ export default function ProfilePage() {
             {/* Role-Based Content */}
             <div className="grid gap-6">
                 {/* PROVIDER MENU */}
-                {user.user_metadata?.role === 'provider' || (user as any).role === 'provider' ? (
+                {(user.user_metadata?.role === 'provider' || (user as any).role === 'provider' || detectedRole === 'provider') ? (
                     <div className="space-y-6">
                         <div className="grid md:grid-cols-2 gap-4">
                             <Card className="bg-eucalyptus/5 border-eucalyptus/20 hover:border-eucalyptus transition-colors cursor-pointer" onClick={() => router.push('/provider-dashboard')}>
