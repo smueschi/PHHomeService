@@ -1549,7 +1549,7 @@ export default function DashboardClient() {
                             {/* GOOGLE CALENDAR INTEGRATION */}
                             <div className="pt-6 border-t mt-6">
                                 <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                                    <Calendar className="h-5 w-5 text-blue-500" />
+                                    <CalendarIcon className="h-5 w-5 text-blue-500" />
                                     Google Calendar Sync
                                 </h3>
                                 <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-xl">
