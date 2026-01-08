@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 // import { MOCK_THERAPISTS } from "@/lib/data"; // Replaced by Real API
-import { Calendar, Clock, Save, User as UserIcon, LogOut, CheckCircle2, Sparkles, ClipboardList, ChevronDown } from "lucide-react";
+import { Calendar, Clock, Save, User as UserIcon, LogOut, CheckCircle2, Sparkles, ClipboardList, ChevronDown, XCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ import { useRouter } from "next/navigation";
 import { PassCalculator } from "@/components/feature/Dashboard/PassCalculator";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-import { getProviderProfile, updateProviderSchedule, updateProviderBio, updateProviderContactDetails, updateProviderProfile, getProviderRequests, createProviderRequest, createBooking, uploadProviderDocument, getProviderBookings } from "@/lib/api";
+import { getProviderProfile, updateProviderSchedule, updateProviderBio, updateProviderContactDetails, updateProviderProfile, getProviderRequests, createProviderRequest, createBooking, uploadProviderDocument, getProviderBookings, updateBookingStatus } from "@/lib/api";
 import { Therapist } from "@/lib/data";
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -67,6 +67,7 @@ export default function DashboardClient() {
     const [requestFile, setRequestFile] = useState<File | null>(null);
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [bookings, setBookings] = useState<any[]>([]); // Remote bookings state
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // 1. Fetch Data
@@ -165,6 +166,22 @@ export default function DashboardClient() {
         } catch (e) {
             console.error("Request failed", e);
             alert("Failed to submit request.");
+        }
+    };
+
+    const handleStatusUpdate = async (bookingId: string, newStatus: 'confirmed' | 'rejected') => {
+        setActionLoading(bookingId);
+        try {
+            await updateBookingStatus(bookingId, newStatus);
+            // Refresh local state
+            setBookings(prev => prev.map(b =>
+                b.id === bookingId ? { ...b, status: newStatus } : b
+            ));
+        } catch (error) {
+            console.error("Failed to update status", error);
+            alert("Failed to update booking status.");
+        } finally {
+            setActionLoading(null);
         }
     };
 
@@ -533,26 +550,44 @@ export default function DashboardClient() {
                                                         </Button>
                                                     </div>
 
-                                                    {/* EXPANDED DETAILS */}
-                                                    {isExpanded && (
-                                                        <div className="mt-4 pt-4 border-t border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
-                                                            <div className="space-y-1">
-                                                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Contact Info</p>
-                                                                <p className="text-sm font-medium flex items-center gap-2">
-                                                                    <span>📞</span>
-                                                                    <a href={`tel:${clientPhone}`} className="hover:text-eucalyptus hover:underline">{clientPhone || "N/A"}</a>
-                                                                </p>
-                                                            </div>
-                                                            <div className="space-y-1">
-                                                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Client Notes</p>
-                                                                <p className="text-sm italic text-slate-600">"{notes}"</p>
-                                                            </div>
-                                                            <div className="sm:col-span-2 flex justify-end gap-2 mt-2">
-                                                                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => alert("Rescheduling feature coming soon!")}>Reschedule</Button>
-                                                                <Button size="sm" className="h-8 text-xs bg-eucalyptus hover:bg-eucalyptus/90" onClick={() => window.open(`https://wa.me/${clientPhone.replace(/[^0-9]/g, "")}`, '_blank')}>Message Client</Button>
-                                                            </div>
+                                                    <div className="mt-4 pt-4 border-t border-slate-200/60 grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                                                        <div className="space-y-1">
+                                                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Contact Info</p>
+                                                            <p className="text-sm font-medium flex items-center gap-2">
+                                                                <span>📞</span>
+                                                                <a href={`tel:${clientPhone}`} className="hover:text-eucalyptus hover:underline">{clientPhone || "N/A"}</a>
+                                                            </p>
                                                         </div>
-                                                    )}
+                                                        <div className="space-y-1">
+                                                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Client Notes</p>
+                                                            <p className="text-sm italic text-slate-600">"{notes}"</p>
+                                                        </div>
+                                                        <div className="sm:col-span-2 flex justify-end gap-2 mt-2">
+                                                            {(!booking.status || booking.status === 'pending') && (
+                                                                <>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        className="h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                        onClick={() => handleStatusUpdate(booking.id, 'rejected')}
+                                                                        disabled={!!actionLoading}
+                                                                    >
+                                                                        {actionLoading === booking.id ? "..." : <><XCircle className="w-3 h-3 mr-1" /> Reject</>}
+                                                                    </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        className="h-8 text-xs bg-eucalyptus hover:bg-eucalyptus/90"
+                                                                        onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
+                                                                        disabled={!!actionLoading}
+                                                                    >
+                                                                        {actionLoading === booking.id ? "..." : <><CheckCircle2 className="w-3 h-3 mr-1" /> Accept</>}
+                                                                    </Button>
+                                                                </>
+                                                            )}
+                                                            <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => alert("Rescheduling feature coming soon!")}>Reschedule</Button>
+                                                            <Button size="sm" className="h-8 text-xs bg-slate-100 text-slate-700 hover:bg-slate-200" onClick={() => window.open(`https://wa.me/${clientPhone.replace(/[^0-9]/g, "")}`, '_blank')}>Message Client</Button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             );
                                         })
