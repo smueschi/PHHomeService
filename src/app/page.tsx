@@ -21,8 +21,15 @@ export default function Home() {
     const fetchHealthPros = async () => {
       setIsLoading(true);
       try {
-        const data = await getProviders();
-        setProviders(data);
+        // TEMP FIX: Use Mock Data to ensure service lists are populated correctly
+        // The DB needs to be seeded with the new serviceRates.
+        // const data = await getProviders();
+        // setProviders(data);
+
+        // Use Mock Data for now as it matches the desired state
+        const { MOCK_THERAPISTS } = await import("@/lib/data");
+        setProviders(MOCK_THERAPISTS);
+
       } catch (err) {
         console.error("Failed to fetch", err);
       } finally {
