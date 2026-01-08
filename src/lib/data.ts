@@ -161,6 +161,10 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 500,
         location: { name: "Cloud 9 Area", lat: 9.8050, lng: 126.1600 },
         rates: { hourly: 700, weekly_pass: 2380, monthly_pass: 6300, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "massage-reflexology": 700,
+            "massage-swedish": 700
+        },
         reviews: [{ author: "Sarah L.", rating: 5, comment: "Amazing reflexology session!", date: "3 weeks ago" }]
     },
     {
@@ -186,6 +190,10 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 0, // NO CREDITS - Should trigger disabled state
         location: { name: "Malinao", lat: 9.7800, lng: 126.1400 },
         rates: { hourly: 400, weekly_pass: 1360, monthly_pass: 3600, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "massage-hilot": 400,
+            "massage-deeptissue": 450
+        },
         reviews: []
     },
     {
@@ -211,6 +219,10 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 2000,
         location: { name: "Catangnan", lat: 9.7950, lng: 126.1650 },
         rates: { hourly: 600, weekly_pass: 2040, monthly_pass: 5400, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "massage-sports": 600,
+            "massage-deeptissue": 600
+        },
         reviews: []
     },
     // --- BEAUTY PROVIDERS ---
@@ -237,6 +249,11 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 2000,
         location: { name: "Tourism Road", lat: 9.7900, lng: 126.1560 },
         rates: { hourly: 600, weekly_pass: 2040, monthly_pass: 5400 },
+        serviceRates: {
+            "beauty-nails": 600,
+            "beauty-lashes": 800,
+            "beauty-events": 1500
+        },
         reviews: []
     },
     {
@@ -262,6 +279,11 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 500,
         location: { name: "Back Road", lat: 9.7880, lng: 126.1540 },
         rates: { hourly: 550, weekly_pass: 1870, monthly_pass: 4950, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "beauty-lashes": 550,
+            "beauty-brows": 400,
+            "beauty-lift": 600
+        },
         reviews: []
     },
     // --- CLEANING ---
@@ -288,6 +310,11 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 3000,
         location: { name: "General Luna Market", lat: 9.7870, lng: 126.1530 },
         rates: { hourly: 500, weekly_pass: 1700, monthly_pass: 4500, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "clean-deep": 500,
+            "clean-standard": 400,
+            "clean-airbnb": 500
+        },
         reviews: []
     },
     {
@@ -313,6 +340,9 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 1000,
         location: { name: "Cloud 9 Boardwalk", lat: 9.8020, lng: 126.1620 },
         rates: { hourly: 600, weekly_pass: 1920, monthly_pass: 5400, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "clean-standard": 600
+        },
         reviews: []
     },
     // --- AIRCON ---
@@ -339,6 +369,11 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 1500,
         location: { name: "Tuason Point", lat: 9.7980, lng: 126.1630 },
         rates: { hourly: 1000, weekly_pass: 3400, monthly_pass: 9000, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "ac-cleaning-split": 1000,
+            "ac-cleaning-window": 750,
+            "ac-repair-split": 1500
+        },
         customRates: {
             ac_split_cleaning: 1000,
             ac_window_cleaning: 750,
@@ -370,6 +405,10 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 2000,
         location: { name: "Cashew Grove", lat: 9.7850, lng: 126.1500 },
         rates: { hourly: 1200, weekly_pass: 4080, monthly_pass: 10800, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "ac-cleaning-heavy": 1200,
+            "ac-repair-heavy": 1800
+        },
         customRates: {
             ac_split_cleaning: 1200,
             ac_window_cleaning: 900,
@@ -402,6 +441,10 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 5000,
         location: { name: "Santa Ines", lat: 9.7750, lng: 126.1450 },
         rates: { hourly: 2500, weekly_pass: 8500, monthly_pass: 0, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "chef-boodle": 2500,
+            "chef-seafood": 3000
+        },
         customRates: {
             chef_labor_only: 500,
             chef_with_groceries: 1200
@@ -431,6 +474,9 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 4000,
         location: { name: "GL Boulevard", lat: 9.7895, lng: 126.1550 },
         rates: { hourly: 2800, weekly_pass: 9520, monthly_pass: 0, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "chef-plated-vegan": 2800
+        },
         customRates: {
             chef_labor_only: 600,
             chef_with_groceries: 1400
@@ -461,6 +507,9 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 1000,
         location: { name: "Poblacion 1", lat: 9.7885, lng: 126.1545 },
         rates: { hourly: 250, weekly_pass: 850, monthly_pass: 0, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "nanny-standard": 250
+        },
         customRates: {
             perExtraChild: 150,
             perInfant: 100
@@ -490,6 +539,10 @@ export const MOCK_THERAPISTS: Therapist[] = [
         walletCredits: 1500,
         location: { name: "Poblacion 3", lat: 9.7890, lng: 126.1565 },
         rates: { hourly: 350, weekly_pass: 1190, monthly_pass: 0, weekly_sessions: 4, monthly_sessions: 12 },
+        serviceRates: {
+            "nanny-night": 350,
+            "nanny-newborn": 400
+        },
         customRates: {
             perExtraChild: 200,
             perInfant: 150

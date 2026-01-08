@@ -131,26 +131,26 @@ export function PassCalculator({
                 {/* ROW 2: Price/Session & Total */}
                 <div className="space-y-1.5">
                     <Label className="text-[10px] uppercase text-slate-500 font-bold tracking-wider whitespace-nowrap">Price / Session</Label>
-                    <div className="relative flex items-center">
-                        <span className="absolute left-3 text-slate-400 text-sm font-medium">₱</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-slate-400 text-sm font-medium">₱</span>
                         <Input
                             type="number"
                             value={perSessionDisplay}
                             onChange={(e) => handlePerSessionChange(e.target.value)}
-                            className="bg-white pl-7 h-10 font-medium"
+                            className="bg-white h-10 font-medium"
                         />
                     </div>
                 </div>
 
                 <div className="space-y-1.5">
                     <Label className="text-[10px] uppercase text-slate-500 font-bold tracking-wider">Total Price</Label>
-                    <div className="relative flex items-center">
-                        <span className="absolute left-3 text-eucalyptus text-sm font-medium">₱</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-eucalyptus text-sm font-medium">₱</span>
                         <Input
                             type="number"
                             value={totalPrice}
                             onChange={(e) => handleTotalChange(e.target.value)}
-                            className="bg-slate-50 border-eucalyptus/30 font-bold text-eucalyptus pl-7 h-10"
+                            className="bg-slate-50 border-eucalyptus/30 font-bold text-eucalyptus h-10"
                         />
                     </div>
                 </div>

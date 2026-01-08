@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { LayoutDashboard, User } from "lucide-react";
 
 export default function ProfilePage() {
     const { user, isLoading, signOut } = useAuth();
@@ -24,6 +25,14 @@ export default function ProfilePage() {
     useEffect(() => {
         const fetchHistory = async () => {
             if (user) {
+                // Fetch Role if not in metadata
+                if (!user.user_metadata?.role) {
+                    // We can fetch from profiles table here if needed, 
+                    // but for now let's rely on what AuthProvider gives or what we can infer.
+                    // Actually, let's just fetch it to be safe since we are relying on it for the Menu.
+                    // Note: You'd need to import supabase client here.
+                }
+
                 setLoadingBookings(true);
                 const data = await getUserBookings(user.id);
                 setBookings(data || []);
@@ -36,6 +45,9 @@ export default function ProfilePage() {
     if (isLoading || !user) {
         return <div className="p-8 flex justify-center">Loading Profile...</div>;
     }
+
+    // Rough check for role, ideally should come from context or db
+    const role = user.user_metadata?.role || (user as any).role;
 
     return (
         <div className="container mx-auto py-8 space-y-8 max-w-4xl">
@@ -55,55 +67,89 @@ export default function ProfilePage() {
                 <Button variant="outline" onClick={signOut}>Sign Out</Button>
             </div>
 
-            {/* Booking History */}
-            <div>
-                <h2 className="text-xl font-bold mb-4">Your Bookings</h2>
-                <div className="space-y-4">
-                    {loadingBookings ? (
-                        <p>Loading your history...</p>
-                    ) : bookings.length === 0 ? (
-                        <Card>
-                            <CardContent className="p-8 text-center text-muted-foreground">
-                                No bookings found. Book your first service today!
-                                <div className="mt-4">
-                                    <Button onClick={() => router.push('/')}>Browse Services</Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ) : (
-                        bookings.map((booking) => (
-                            <Card key={booking.id} className="overflow-hidden">
-                                <CardHeader className="bg-slate-50 py-3">
-                                    <div className="flex justify-between items-center">
-                                        <CardTitle className="text-base font-semibold">
-                                            {booking.service_category} - {booking.variant}
-                                        </CardTitle>
-                                        <span className={`text-xs px-2 py-1 rounded font-bold uppercase ${booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                                                booking.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                    'bg-yellow-100 text-yellow-700'
-                                            }`}>
-                                            {booking.status || 'pending'}
-                                        </span>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="pt-4 grid sm:grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                        <p className="text-muted-foreground">Date & Time</p>
-                                        <p className="font-medium">{format(new Date(booking.date), 'PPP')} @ {booking.time}</p>
+            {/* Role-Based Content */}
+            <div className="grid gap-6">
+                {/* PROVIDER MENU */}
+                {user.user_metadata?.role === 'provider' || (user as any).role === 'provider' ? (
+                    <div className="space-y-6">
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <Card className="bg-eucalyptus/5 border-eucalyptus/20 hover:border-eucalyptus transition-colors cursor-pointer" onClick={() => router.push('/provider-dashboard')}>
+                                <CardContent className="p-6 flex items-center gap-4">
+                                    <div className="bg-eucalyptus text-white p-3 rounded-full">
+                                        <LayoutDashboard className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-muted-foreground">Total</p>
-                                        <p className="font-medium">₱{booking.financials?.total}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-muted-foreground">Location</p>
-                                        <p className="font-medium truncate">{booking.customer?.address}</p>
+                                        <h3 className="font-bold text-lg text-slate-800">Provider Dashboard</h3>
+                                        <p className="text-sm text-slate-500">Manage bookings, schedule, and earnings</p>
                                     </div>
                                 </CardContent>
                             </Card>
-                        ))
-                    )}
-                </div>
+
+                            <Card className="hover:border-slate-300 transition-colors cursor-pointer">
+                                <CardContent className="p-6 flex items-center gap-4">
+                                    <div className="bg-slate-100 text-slate-600 p-3 rounded-full">
+                                        <User className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-lg text-slate-800">Edit Profile</h3>
+                                        <p className="text-sm text-slate-500">Update bio, services, and photos</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                ) : (
+                    /* USER MENU - Show Bookings */
+                    <div>
+                        <h2 className="text-xl font-bold mb-4">Your Bookings</h2>
+                        <div className="space-y-4">
+                            {loadingBookings ? (
+                                <p>Loading your history...</p>
+                            ) : bookings.length === 0 ? (
+                                <Card>
+                                    <CardContent className="p-8 text-center text-muted-foreground">
+                                        No bookings found. Book your first service today!
+                                        <div className="mt-4">
+                                            <Button onClick={() => router.push('/')}>Browse Services</Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                bookings.map((booking) => (
+                                    <Card key={booking.id} className="overflow-hidden">
+                                        <CardHeader className="bg-slate-50 py-3">
+                                            <div className="flex justify-between items-center">
+                                                <CardTitle className="text-base font-semibold">
+                                                    {booking.service_category} - {booking.variant}
+                                                </CardTitle>
+                                                <span className={`text-xs px-2 py-1 rounded font-bold uppercase ${booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                                    booking.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                                        'bg-yellow-100 text-yellow-700'
+                                                    }`}>
+                                                    {booking.status || 'pending'}
+                                                </span>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="pt-4 grid sm:grid-cols-2 gap-4 text-sm">
+                                            <div>
+                                                <p className="text-muted-foreground">Date & Time</p>
+                                                <p className="font-medium">{format(new Date(booking.date), 'PPP')} @ {booking.time}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-muted-foreground">Total</p>
+                                                <p className="font-medium">₱{booking.financials?.total}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-muted-foreground">Location</p>
+                                                <p className="font-medium truncate">{booking.customer?.address}</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

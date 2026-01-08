@@ -67,17 +67,10 @@ export function Header() {
                             Join as Pro
                         </Link>
                         {user ? (
-                            userRole === "provider" ? (
-                                <Link href="/provider-dashboard" className="hover:text-eucalyptus transition-colors flex items-center gap-2" onClick={handleNavClick}>
-                                    <LayoutDashboard className="w-5 h-5" />
-                                    Dashboard
-                                </Link>
-                            ) : (
-                                <Link href="/profile" className="hover:text-eucalyptus transition-colors flex items-center gap-2" onClick={handleNavClick}>
-                                    <User className="w-5 h-5" />
-                                    Profile
-                                </Link>
-                            )
+                            <Link href="/profile" className="hover:text-eucalyptus transition-colors flex items-center gap-2" onClick={handleNavClick}>
+                                <User className="w-5 h-5" />
+                                Profile
+                            </Link>
                         ) : (
                             <Link href="/login" className="hover:text-eucalyptus transition-colors" onClick={handleNavClick}>
                                 Login
@@ -112,17 +105,10 @@ export function Header() {
                             Join as Pro
                         </Link>
                         {user ? (
-                            userRole === "provider" ? (
-                                <Link href="/provider-dashboard" className="hover:text-eucalyptus py-2 border-b border-gray-100 flex items-center gap-2" onClick={handleNavClick}>
-                                    <LayoutDashboard className="w-5 h-5" />
-                                    Dashboard
-                                </Link>
-                            ) : (
-                                <Link href="/profile" className="hover:text-eucalyptus py-2 border-b border-gray-100 flex items-center gap-2" onClick={handleNavClick}>
-                                    <User className="w-5 h-5" />
-                                    Profile
-                                </Link>
-                            )
+                            <Link href="/profile" className="hover:text-eucalyptus py-2 border-b border-gray-100 flex items-center gap-2" onClick={handleNavClick}>
+                                <User className="w-5 h-5" />
+                                Profile
+                            </Link>
                         ) : (
                             <Link href="/login" className="hover:text-eucalyptus py-2 border-b border-gray-100" onClick={handleNavClick}>
                                 Login

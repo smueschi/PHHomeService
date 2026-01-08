@@ -46,7 +46,7 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
     });
 
     // Validations & Logic
-    const isValidMobileNumber = (num: string) => /^(09|\+639)\d{9}$/.test(num.replace(/\s/g, ""));
+    const isValidMobileNumber = (num: string) => /^\+?\d{10,15}$/.test(num.replace(/[\s-]/g, ""));
     const isStep1Valid = !!selectedService;
     // Step 2 is Pass (always valid, can skip)
     const isStep3Valid = !!formData.date && !!formData.time;
@@ -381,7 +381,7 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                                         />
                                     </div>
                                     {formData.client_phone && !isValidMobileNumber(formData.client_phone) && (
-                                        <p className="text-[10px] text-red-500 mt-1">Invalid format. Use 0917... or +639...</p>
+                                        <p className="text-[10px] text-red-500 mt-1">Invalid format. Minimum 10 digits.</p>
                                     )}
                                 </div>
                                 <div>
