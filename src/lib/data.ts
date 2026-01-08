@@ -6,6 +6,15 @@ export interface Review {
     date: string;
 }
 
+export interface Message {
+    id: string;
+    sender_id: string;
+    receiver_id: string;
+    content: string;
+    created_at: string;
+    is_read: boolean;
+}
+
 export interface Schedule {
     workingDays: string[];
     workingHours: {
@@ -13,6 +22,7 @@ export interface Schedule {
         end: string;
     };
     blockedDates: string[];
+    blockedSlots?: string[]; // ISO Strings of specific blocked slots (e.g. "2024-01-20T10:00:00")
     onHoliday: boolean;
 }
 
@@ -96,6 +106,8 @@ export interface Therapist {
 
     contactNumber?: string;
     contactPreference?: 'sms' | 'whatsapp' | 'any';
+    isGoogleCalendarConnected?: boolean;
+    googleEmail?: string;
     reviews: Review[];
     role?: 'admin' | 'provider' | 'user';
 }

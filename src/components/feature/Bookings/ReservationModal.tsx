@@ -91,12 +91,30 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
     const handleBack = () => setStep(s => s - 1);
 
     const checkAvailability = (date: Date) => {
-        // Mock availability logic
-        const slots = [];
-        const start = parseInt(therapist?.schedule?.workingHours?.start?.split(":")[0] || "9");
-        const end = parseInt(therapist?.schedule?.workingHours?.end?.split(":")[0] || "17");
+        if (!therapist?.schedule) return [];
+        const slots: string[] = [];
+
+        const startStr = therapist.schedule.workingHours?.start || "09:00";
+        const endStr = therapist.schedule.workingHours?.end || "17:00";
+        const start = parseInt(startStr.split(":")[0]);
+        const end = parseInt(endStr.split(":")[0]);
+
+        const dateKey = format(date, "yyyy-MM-dd"); // "2024-01-20"
+
         for (let i = start; i < end; i++) {
-            slots.push(`${i}:00 ${i < 12 ? 'AM' : 'PM'}`);
+            // Construct 24h time for checking block list
+            const h24 = i.toString().padStart(2, '0');
+            const time24 = `${h24}:00`;
+            const slotIso = `${dateKey}T${time24}`; // "2024-01-20T09:00"
+
+            const isBlocked = therapist.schedule.blockedSlots?.includes(slotIso);
+
+            if (!isBlocked) {
+                // Return readable format for UI
+                const suffix = i < 12 ? 'AM' : 'PM';
+                const h12 = i % 12 || 12;
+                slots.push(`${h12}:00 ${suffix}`);
+            }
         }
         return slots;
     };

@@ -62,7 +62,7 @@ const mapProfileToTherapist = (row: any): Therapist => {
         duration: row.duration || "60 min",
         bio: row.bio || "",
         availability: formatScheduleToAvailability(row.schedule),
-        schedule: row.schedule || { workingDays: [], workingHours: { start: "09:00", end: "17:00" }, blockedDates: [], onHoliday: false },
+        schedule: row.schedule || { workingDays: [], workingHours: { start: "09:00", end: "17:00" }, blockedDates: [], blockedSlots: [], onHoliday: false },
         specialties: row.specialties || [],
         walletCredits: Number(row.wallet_credits || 0),
         location: locationObj,
@@ -73,7 +73,9 @@ const mapProfileToTherapist = (row: any): Therapist => {
         contactNumber: row.contact_number || "",
         contactPreference: row.contact_preference || "any",
         reviews: row.reviews || [],
-        role: row.role || "provider"
+        role: row.role || "provider",
+        isGoogleCalendarConnected: row.is_google_calendar_connected || false,
+        googleEmail: row.google_email || ""
     };
 };
 
@@ -570,4 +572,55 @@ export const updateUserRole = async (userId: string, role: 'admin' | 'provider' 
         .eq('id', userId);
 
     if (error) throw error;
+};
+
+// --- Chat API ---
+
+export const getConversation = async (userId: string, otherId: string) => {
+    const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+        .or(`sender_id.eq.${otherId},receiver_id.eq.${otherId}`)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error("Error fetching messages:", error);
+        return [];
+    }
+
+    // Filter locally to match conversation pairs specifically
+    // (My sent messages to them) OR (Their sent messages to me)
+    const conversation = (data || []).filter((m: any) =>
+        (m.sender_id === userId && m.receiver_id === otherId) ||
+        (m.sender_id === otherId && m.receiver_id === userId)
+    );
+
+    return conversation;
+};
+
+export const sendMessage = async (content: string, senderId: string, receiverId: string) => {
+    const { data, error } = await supabase
+        .from('messages')
+        .insert([{ content, sender_id: senderId, receiver_id: receiverId }])
+        .select()
+        .single();
+
+    if (error) {
+        console.error("Error sending message:", error);
+        throw error;
+    }
+    return data;
+};
+
+export const markMessagesAsRead = async (senderId: string, receiverId: string) => {
+    // receiverId is ME, senderId is the OTHER person.
+    const { error } = await supabase
+        .from('messages')
+        .update({ is_read: true })
+        .eq('sender_id', senderId)
+        .eq('receiver_id', receiverId)
+        .eq('is_read', false);
+
+    if (error) console.error("Error marking read:", error);
 };

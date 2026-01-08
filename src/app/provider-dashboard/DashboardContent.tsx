@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 // import { MOCK_THERAPISTS } from "@/lib/data"; // Replaced by Real API
-import { Calendar, Clock, Save, User as UserIcon, LogOut, CheckCircle2, Sparkles, ClipboardList, ChevronDown, XCircle } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Save, User as UserIcon, LogOut, CheckCircle2, Sparkles, ClipboardList, ChevronDown, XCircle } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -31,11 +32,28 @@ import { useRouter } from "next/navigation";
 import { PassCalculator } from "@/components/feature/Dashboard/PassCalculator";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-import { getProviderProfile, updateProviderSchedule, updateProviderBio, updateProviderContactDetails, updateProviderProfile, getProviderRequests, createProviderRequest, createBooking, uploadProviderDocument, getProviderBookings, updateBookingStatus, updateBookingFinancials } from "@/lib/api";
+import { getProviderProfile, getProviderProfileWithReviews, updateProviderSchedule, updateProviderBio, updateProviderContactDetails, updateProviderProfile, getProviderRequests, createProviderRequest, createBooking, uploadProviderDocument, getProviderBookings, updateBookingStatus, updateBookingFinancials } from "@/lib/api";
+import { Star } from "lucide-react"; // Import Star
 import { Therapist } from "@/lib/data";
 import { sendBookingConfirmation } from "@/lib/email";
+import { ChatWindow } from "@/components/feature/Chat/ChatWindow";
+import { MessageCircle } from "lucide-react";
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const generateTimeSlots = (start: string, end: string) => {
+    const slots = [];
+    let current = new Date(`2000-01-01T${start}`);
+    const endTime = new Date(`2000-01-01T${end}`);
+
+    while (current < endTime) {
+        slots.push(current.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+        current.setMinutes(current.getMinutes() + 60); // 1 Hour intervals for blocking
+    }
+    return slots;
+};
+
+// Removed broken block
 
 export default function DashboardClient() {
     const { user: authUser, isLoading } = useAuth();
@@ -51,6 +69,8 @@ export default function DashboardClient() {
     const [endTime, setEndTime] = useState("17:00");
     const [onHoliday, setOnHoliday] = useState(false);
     const [blockedDates, setBlockedDates] = useState<string[]>([]);
+    const [blockedSlots, setBlockedSlots] = useState<string[]>([]); // Granular
+    const [scheduleManagementDate, setScheduleManagementDate] = useState<Date | undefined>(new Date()); // For the Dialog
     const [specialties, setSpecialties] = useState<string[]>([]);
 
     const [serviceRates, setServiceRates] = useState<Record<string, number>>({});
@@ -69,6 +89,7 @@ export default function DashboardClient() {
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [bookings, setBookings] = useState<any[]>([]); // Remote bookings state
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [activeChatUser, setActiveChatUser] = useState<{ id: string, name: string, image?: string } | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // 1. Fetch Data
@@ -80,7 +101,7 @@ export default function DashboardClient() {
 
         const fetchData = async () => {
             if (authUser) {
-                const profile = await getProviderProfile(authUser.id);
+                const profile = await getProviderProfileWithReviews(authUser.id); // Updated to fetch reviews
                 if (profile) {
                     setUser(profile);
                     // Initialize Form State
@@ -89,6 +110,7 @@ export default function DashboardClient() {
                     setEndTime(profile.schedule?.workingHours?.end || "17:00");
                     setOnHoliday(profile.schedule?.onHoliday || false);
                     setBlockedDates(profile.schedule?.blockedDates || []);
+                    setBlockedSlots(profile.schedule?.blockedSlots || []);
                     setSpecialties(profile.specialties || []);
                     setServiceRates(profile.serviceRates || {});
 
@@ -192,7 +214,16 @@ export default function DashboardClient() {
                         time: booking.time,
                         address: booking.customer.address
                     });
-                    alert("Booking confirmed and email sent to client!");
+
+                    // Trigger Google Calendar Sync (Fire and forget, or await)
+                    // We don't want to block UI for sync, so no await or silent catch
+                    fetch('/api/calendar/sync', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ bookingId })
+                    }).catch(err => console.error("Sync Trigger Failed", err));
+
+                    alert("Booking confirmed, email sent, and calendar sync triggered!");
                 }
             } else {
                 alert("Booking rejected.");
@@ -240,6 +271,21 @@ export default function DashboardClient() {
         setIsSaved(false);
     };
 
+    const handleToggleSlot = (date: Date, time: string) => {
+        // Create ISO string for the slot: YYYY-MM-DDTHH:mm
+        // Date is from Calendar (local time), time is HH:mm
+        // Construct naive ISO string to avoid timezone shifts for now, or match existing logic
+        const dateStr = date.toLocaleDateString("en-CA"); // YYYY-MM-DD
+        const slotIso = `${dateStr}T${time}`;
+
+        if (blockedSlots.includes(slotIso)) {
+            setBlockedSlots(blockedSlots.filter(s => s !== slotIso));
+        } else {
+            setBlockedSlots([...blockedSlots, slotIso]);
+        }
+        setIsSaved(false);
+    };
+
     const handleSave = async () => {
         if (!authUser || !user) return;
         try {
@@ -249,6 +295,7 @@ export default function DashboardClient() {
                     workingDays,
                     workingHours: { start: startTime, end: endTime },
                     blockedDates,
+                    blockedSlots,
                     onHoliday
                 },
                 rates: user.rates,
@@ -559,6 +606,8 @@ export default function DashboardClient() {
                                             // Extract Customer Info from JSONB
                                             const customer = booking.customer || {};
                                             const clientName = customer.name || "Unknown Client";
+                                            // Fallback for ID: user_id from root, or email, or a static ID for demo
+                                            const clientId = (booking as any).user_id || customer.email || "2f913691-e490-449e-862d-a41757827ff3";
                                             const clientPhone = customer.phone || "";
 
                                             // Extract Meta/Variant
@@ -640,7 +689,14 @@ export default function DashboardClient() {
                                                                 </Button>
                                                             )}
                                                             <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => alert("Rescheduling feature coming soon!")}>Reschedule</Button>
-                                                            <Button size="sm" className="h-8 text-xs bg-slate-100 text-slate-700 hover:bg-slate-200" onClick={() => window.open(`https://wa.me/${clientPhone.replace(/[^0-9]/g, "")}`, '_blank')}>Message Client</Button>
+                                                            <Button
+                                                                size="sm"
+                                                                className="h-8 text-xs bg-eucalyptus/10 text-eucalyptus hover:bg-eucalyptus/20 border border-eucalyptus/20"
+                                                                onClick={() => setActiveChatUser({ id: clientId, name: clientName })}
+                                                            >
+                                                                <MessageCircle className="w-3 h-3 mr-1" />
+                                                                Chat
+                                                            </Button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -656,6 +712,34 @@ export default function DashboardClient() {
                                     </Button>
                                 </p>
                             </div>
+
+                            {/* RECENT REVIEWS */}
+                            <Card className="p-6 md:p-8 rounded-3xl border-none shadow-lg bg-white mb-6">
+                                <div className="flex items-center gap-2 mb-4 text-foreground">
+                                    <Star className="h-5 w-5 text-eucalyptus" />
+                                    <h3 className="font-semibold text-lg">Client Reviews</h3>
+                                </div>
+                                <div className="space-y-4">
+                                    {(!user?.reviews || user.reviews.length === 0) ? (
+                                        <p className="text-sm text-muted-foreground italic">No reviews yet. Ask your clients to leave feedback!</p>
+                                    ) : (
+                                        user.reviews.map((review: any, i: number) => (
+                                            <div key={i} className="border-b pb-4 last:border-0 last:pb-0">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className="font-semibold text-sm">{review.author || "Anonymous"}</span>
+                                                    <span className="text-xs text-muted-foreground">{review.date}</span>
+                                                </div>
+                                                <div className="flex text-yellow-400 mb-1">
+                                                    {Array.from({ length: 5 }).map((_, i) => (
+                                                        <Star key={i} className={cn("w-3 h-3 fill-current", i < review.rating ? "text-yellow-400" : "text-gray-200")} />
+                                                    ))}
+                                                </div>
+                                                <p className="text-sm text-slate-600">"{review.comment}"</p>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </Card>
 
                             {/* Working Days */}
                             <div id="schedule-section" className="mb-8 scroll-mt-24">
@@ -738,6 +822,75 @@ export default function DashboardClient() {
                                         </Select>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Granular Blocking Dialog */}
+                            <div className="mb-8">
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" className="w-full md:w-auto border-eucalyptus text-eucalyptus hover:bg-eucalyptus/5">
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            Manage Specific Time Slots (Exceptions)
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                                        <DialogHeader>
+                                            <DialogTitle>Manage Schedule Exceptions</DialogTitle>
+                                            <DialogDescription>
+                                                Block specific time slots for dates where you are partially available.
+                                                Red = Blocked, Green = Available.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+                                            <div>
+                                                <Label className="mb-2 block">Select Date</Label>
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={scheduleManagementDate}
+                                                    onSelect={setScheduleManagementDate}
+                                                    className="rounded-md border"
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label className="mb-2 block">
+                                                    {scheduleManagementDate ? scheduleManagementDate.toDateString() : "Select a date"} - Time Slots
+                                                </Label>
+
+                                                {scheduleManagementDate && (
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        {generateTimeSlots(startTime, endTime).map(time => {
+                                                            const dateStr = scheduleManagementDate.toLocaleDateString("en-CA");
+                                                            const slotIso = `${dateStr}T${time}`;
+                                                            const isBlocked = blockedSlots.includes(slotIso);
+
+                                                            return (
+                                                                <Button
+                                                                    key={time}
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    className={cn(
+                                                                        "text-xs transition-colors",
+                                                                        isBlocked
+                                                                            ? "bg-red-100 text-red-700 border-red-200 hover:bg-red-200"
+                                                                            : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                                                                    )}
+                                                                    onClick={() => handleToggleSlot(scheduleManagementDate, time)}
+                                                                >
+                                                                    {time}
+                                                                    {isBlocked ? " (Blocked)" : ""}
+                                                                </Button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                                {!scheduleManagementDate && <p className="text-sm text-muted-foreground">Please select a date from the calendar.</p>}
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button onClick={handleSave} type="submit">Save Changes</Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
 
                             {/* PASSES & SUBSCRIPTIONS */}
@@ -1325,10 +1478,59 @@ export default function DashboardClient() {
                                 </Button>
                             </div>
 
+
+
+                            {/* GOOGLE CALENDAR INTEGRATION */}
+                            <div className="pt-6 border-t mt-6">
+                                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                                    <Calendar className="h-5 w-5 text-blue-500" />
+                                    Google Calendar Sync
+                                </h3>
+                                <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                                    <div>
+                                        <p className="font-medium text-blue-900">
+                                            {user?.isGoogleCalendarConnected ? `Connected as ${user.googleEmail}` : "Sync your bookings"}
+                                        </p>
+                                        <p className="text-sm text-blue-700/80">
+                                            {user?.isGoogleCalendarConnected
+                                                ? "Bookings are automatically synced to your calendar."
+                                                : "Connect your Google Calendar to automatically export confirmed bookings."}
+                                        </p>
+                                    </div>
+                                    {user?.isGoogleCalendarConnected ? (
+                                        <Button variant="outline" className="border-blue-200 text-blue-700 bg-white hover:bg-blue-100" onClick={() => alert("Disconnect logic not implemented in MVP")}>
+                                            Disconnect
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            className="bg-white text-blue-600 hover:bg-blue-100 border border-blue-200 shadow-sm"
+                                            onClick={() => {
+                                                if (!authUser?.id) return;
+                                                window.location.href = `/api/auth/google?providerId=${authUser.id}`;
+                                            }}
+                                        >
+                                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4 mr-2" alt="G" />
+                                            Connect Google
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
                         </Card>
                     </div>
                 </div>
             </div >
+
+            {/* CHAT WINDOW PORTAL */}
+            {
+                activeChatUser && (
+                    <ChatWindow
+                        otherUserId={activeChatUser.id}
+                        otherUserName={activeChatUser.name}
+                        otherUserImage={activeChatUser.image}
+                        onClose={() => setActiveChatUser(null)}
+                    />
+                )
+            }
         </div >
     );
 }

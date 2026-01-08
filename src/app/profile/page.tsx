@@ -9,10 +9,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { LayoutDashboard, User, Settings, Calendar } from "lucide-react";
+import { LayoutDashboard, User, Settings, Calendar, Star } from "lucide-react";
 // Import dashboard content
 import DashboardContent from "@/app/provider-dashboard/DashboardContent";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ReviewModal } from "@/components/feature/Reviews/ReviewModal";
 
 export default function ProfilePage() {
     const { user, isLoading, signOut } = useAuth();
@@ -72,6 +73,15 @@ export default function ProfilePage() {
 
     // Rough check for role, ideally should come from context or db
     const role = user.user_metadata?.role || (user as any).role;
+
+    // Review Modal State
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [selectedBookingForReview, setSelectedBookingForReview] = useState<any>(null);
+
+    const handleReviewClick = (booking: any) => {
+        setSelectedBookingForReview(booking);
+        setReviewModalOpen(true);
+    };
 
     return (
         <div className="container mx-auto py-8 space-y-8 max-w-4xl">
@@ -150,17 +160,19 @@ export default function ProfilePage() {
                                                     {booking.service_category || booking.service_code || "Service"}
                                                     <span className="block text-xs font-normal text-slate-500 mt-1">{booking.variant}</span>
                                                 </CardTitle>
-                                                <Badge className={
-                                                    booking.status === 'confirmed' ? "bg-green-100 text-green-700 hover:bg-green-100 border-none" :
-                                                        booking.status === 'rejected' ? "bg-red-100 text-red-700 hover:bg-red-100 border-none" :
-                                                            "bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-none"
-                                                }>
-                                                    {booking.status === 'confirmed' ? 'Confirmed' :
-                                                        booking.status === 'rejected' ? 'Cancelled' : 'Pending'}
-                                                </Badge>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge className={
+                                                        booking.status === 'confirmed' ? "bg-green-100 text-green-700 hover:bg-green-100 border-none" :
+                                                            booking.status === 'rejected' ? "bg-red-100 text-red-700 hover:bg-red-100 border-none" :
+                                                                "bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-none"
+                                                    }>
+                                                        {booking.status === 'confirmed' ? 'Confirmed' :
+                                                            booking.status === 'rejected' ? 'Cancelled' : 'Pending'}
+                                                    </Badge>
+                                                </div>
                                             </div>
                                         </CardHeader>
-                                        <CardContent className="pt-4 grid sm:grid-cols-2 gap-4 text-sm">
+                                        <CardContent className="pt-4 grid sm:grid-cols-2 gap-4 text-sm relative">
                                             <div>
                                                 <p className="text-muted-foreground">Date & Time</p>
                                                 <p className="font-medium">{format(new Date(booking.date), 'PPP')} @ {booking.time}</p>
@@ -173,6 +185,32 @@ export default function ProfilePage() {
                                                 <p className="text-muted-foreground">Location</p>
                                                 <p className="font-medium truncate">{booking.customer?.address}</p>
                                             </div>
+
+                                            {/* Action Button for Confirmed Bookings */}
+                                            {booking.status === 'confirmed' && (
+                                                <div className="absolute top-4 right-4 hidden sm:block">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="gap-2"
+                                                        onClick={() => handleReviewClick(booking)}
+                                                    >
+                                                        <Star className="w-3 h-3" /> Leave Review
+                                                    </Button>
+                                                </div>
+                                            )}
+                                            {booking.status === 'confirmed' && (
+                                                <div className="col-span-2 pt-2 sm:hidden">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="w-full gap-2"
+                                                        onClick={() => handleReviewClick(booking)}
+                                                    >
+                                                        <Star className="w-3 h-3" /> Leave Review
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </CardContent>
                                     </Card>
                                 ))
@@ -181,6 +219,21 @@ export default function ProfilePage() {
                     </div>
                 )}
             </div>
+
+            {/* Review Modal */}
+            {selectedBookingForReview && (
+                <ReviewModal
+                    isOpen={reviewModalOpen}
+                    onClose={() => setReviewModalOpen(false)}
+                    onSuccess={() => {
+                        // Optional: Refresh bookings to hide/disable button or show "Reviewed" badge
+                        // For now we just close
+                    }}
+                    bookingId={selectedBookingForReview.id}
+                    providerId={selectedBookingForReview.meta?.therapist_id}
+                    providerName={selectedBookingForReview.meta?.therapist_name || "Provider"}
+                />
+            )}
         </div>
     );
 }
