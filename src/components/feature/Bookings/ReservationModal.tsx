@@ -412,30 +412,45 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                     {/* STEP 5: SUCCESS */}
                     {step === 5 && (
                         <div className="text-center py-8 space-y-4">
-                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">
                                 <CheckCircle2 className="w-8 h-8" />
                             </div>
                             <h2 className="text-2xl font-bold text-slate-900">Booking Confirmed!</h2>
-                            <p className="text-slate-500">
-                                Your booking with {therapist.name} is set.
+                            <p className="text-slate-500 max-w-xs mx-auto">
+                                Your booking with {therapist.name} has been sent. You can track its status in your profile.
                             </p>
                             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 max-w-xs mx-auto text-left text-sm space-y-2">
                                 <div className="flex justify-between">
                                     <span className="text-slate-500">Ref:</span>
-                                    <span className="font-mono font-bold">{bookingRef}</span>
+                                    <span className="font-mono font-bold text-slate-900">{bookingRef}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-slate-500">Date:</span>
-                                    <span className="font-medium">{formData.date ? format(formData.date, "PPP") : ""}</span>
+                                    <span className="font-medium text-slate-900">{formData.date ? format(formData.date, "PPP") : ""}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-slate-500">Time:</span>
-                                    <span className="font-medium">{formData.time}</span>
+                                    <span className="font-medium text-slate-900">{formData.time}</span>
                                 </div>
                                 <div className="flex justify-between border-t border-dashed pt-2 mt-2">
                                     <span className="font-bold text-slate-700">Total:</span>
                                     <span className="font-bold text-eucalyptus">₱{totalCost}</span>
                                 </div>
+                            </div>
+
+                            <div className="pt-4 flex flex-col gap-2 max-w-xs mx-auto">
+                                <Button
+                                    className="w-full bg-eucalyptus hover:bg-eucalyptus/90"
+                                    onClick={() => window.location.href = "/profile"}
+                                >
+                                    View in My Bookings
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => onOpenChange(false)}
+                                >
+                                    Close
+                                </Button>
                             </div>
                         </div>
                     )}
@@ -468,7 +483,12 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                                 }
                                 className="bg-eucalyptus hover:bg-eucalyptus/90 text-white px-8"
                             >
-                                {isSubmitting ? "Booking..." : step === 4 ? "Confirm Booking" : "Next"}
+                                {isSubmitting ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                                        Processing...
+                                    </>
+                                ) : step === 4 ? "Confirm Booking" : "Next"}
                                 {!isSubmitting && step < 4 && <ChevronRight className="w-4 h-4 ml-1" />}
                             </Button>
                         </div>

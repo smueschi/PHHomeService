@@ -7,6 +7,7 @@ import { getUserBookings } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { LayoutDashboard, User } from "lucide-react";
 
@@ -119,15 +120,18 @@ export default function ProfilePage() {
                                     <Card key={booking.id} className="overflow-hidden">
                                         <CardHeader className="bg-slate-50 py-3">
                                             <div className="flex justify-between items-center">
-                                                <CardTitle className="text-base font-semibold">
-                                                    {booking.service_category} - {booking.variant}
+                                                <CardTitle className="text-base font-semibold text-slate-900">
+                                                    {booking.service_category || booking.service_code || "Service"}
+                                                    <span className="block text-xs font-normal text-slate-500 mt-1">{booking.variant}</span>
                                                 </CardTitle>
-                                                <span className={`text-xs px-2 py-1 rounded font-bold uppercase ${booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                                                    booking.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                                        'bg-yellow-100 text-yellow-700'
-                                                    }`}>
-                                                    {booking.status || 'pending'}
-                                                </span>
+                                                <Badge className={
+                                                    booking.status === 'confirmed' ? "bg-green-100 text-green-700 hover:bg-green-100 border-none" :
+                                                        booking.status === 'rejected' ? "bg-red-100 text-red-700 hover:bg-red-100 border-none" :
+                                                            "bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-none"
+                                                }>
+                                                    {booking.status === 'confirmed' ? 'Confirmed' :
+                                                        booking.status === 'rejected' ? 'Cancelled' : 'Pending'}
+                                                </Badge>
                                             </div>
                                         </CardHeader>
                                         <CardContent className="pt-4 grid sm:grid-cols-2 gap-4 text-sm">
