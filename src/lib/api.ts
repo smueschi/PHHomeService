@@ -274,6 +274,18 @@ export const updateBookingStatus = async (id: string, status: string) => {
     }
 };
 
+export const updateBookingFinancials = async (id: string, financials: any) => {
+    const { error } = await supabase
+        .from('bookings')
+        .update({ financials })
+        .eq('id', id);
+
+    if (error) {
+        console.error("Error updating booking financials:", error);
+        throw error;
+    }
+};
+
 export const getUserBookings = async (userId: string) => {
     // We assume the booking has a 'user_id' column or we filter by customer phone/email if not authenticated.
     // However, best practice is to RLS by user_id. 

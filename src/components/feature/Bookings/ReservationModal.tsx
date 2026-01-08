@@ -18,6 +18,7 @@ import { CalendarIcon, Clock, CheckCircle2, AlertCircle, Phone, MapPin, ChevronL
 import { useAuth } from "@/components/providers/AuthProvider"; // Fixed import path
 import { createBooking } from "@/lib/api";
 import { Therapist } from "@/lib/data";
+import { sendProviderNotification } from "@/lib/email";
 
 interface BookingModalProps {
     therapist: Therapist | null;
@@ -124,6 +125,17 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
             };
 
             const result = await createBooking(payload);
+
+            // Send Email Notification to Provider
+            await sendProviderNotification({
+                serviceName: payload.service_code,
+                customerName: payload.customer.name,
+                date: payload.date,
+                time: payload.time,
+                // In a real app, we'd fetch provider email. For now, we rely on the API content or mock.
+                // We'll pass the provider's ID or Name for logging.
+                providerName: therapist.name
+            });
 
             // If result has an ID (it should), show it
             const refId = result?.id ? `BK-${result.id.slice(0, 8).toUpperCase()}` : `BK-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;

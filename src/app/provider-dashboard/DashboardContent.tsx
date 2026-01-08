@@ -31,8 +31,9 @@ import { useRouter } from "next/navigation";
 import { PassCalculator } from "@/components/feature/Dashboard/PassCalculator";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-import { getProviderProfile, updateProviderSchedule, updateProviderBio, updateProviderContactDetails, updateProviderProfile, getProviderRequests, createProviderRequest, createBooking, uploadProviderDocument, getProviderBookings, updateBookingStatus } from "@/lib/api";
+import { getProviderProfile, updateProviderSchedule, updateProviderBio, updateProviderContactDetails, updateProviderProfile, getProviderRequests, createProviderRequest, createBooking, uploadProviderDocument, getProviderBookings, updateBookingStatus, updateBookingFinancials } from "@/lib/api";
 import { Therapist } from "@/lib/data";
+import { sendBookingConfirmation } from "@/lib/email";
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -173,13 +174,56 @@ export default function DashboardClient() {
         setActionLoading(bookingId);
         try {
             await updateBookingStatus(bookingId, newStatus);
+
             // Refresh local state
             setBookings(prev => prev.map(b =>
                 b.id === bookingId ? { ...b, status: newStatus } : b
             ));
+
+            // Send Email if Confirmed
+            if (newStatus === 'confirmed') {
+                const booking = bookings.find(b => b.id === bookingId);
+                if (booking) {
+                    await sendBookingConfirmation({
+                        customerName: booking.customer.name,
+                        customerEmail: booking.customer.email, // Ensure this exists in your booking data
+                        serviceName: booking.service_code,
+                        date: booking.date,
+                        time: booking.time,
+                        address: booking.customer.address
+                    });
+                    alert("Booking confirmed and email sent to client!");
+                }
+            } else {
+                alert("Booking rejected.");
+            }
+
         } catch (error) {
             console.error("Failed to update status", error);
             alert("Failed to update booking status.");
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handlePaymentUpdate = async (bookingId: string) => {
+        const booking = bookings.find(b => b.id === bookingId);
+        if (!booking) return;
+
+        const currentFinancials = booking.financials || {};
+        const newStatus = currentFinancials.payment_status === 'paid' ? 'pending' : 'paid';
+        const newFinancials = { ...currentFinancials, payment_status: newStatus };
+
+        setActionLoading(bookingId);
+        try {
+            await updateBookingFinancials(bookingId, newFinancials);
+            // Refresh local state
+            setBookings(prev => prev.map(b =>
+                b.id === bookingId ? { ...b, financials: newFinancials } : b
+            ));
+        } catch (error) {
+            console.error("Failed to update payment", error);
+            alert("Failed to update payment status.");
         } finally {
             setActionLoading(null);
         }
@@ -583,6 +627,17 @@ export default function DashboardClient() {
                                                                         {actionLoading === booking.id ? "..." : <><CheckCircle2 className="w-3 h-3 mr-1" /> Accept</>}
                                                                     </Button>
                                                                 </>
+                                                            )}
+                                                            {/* Payment Status Toggle */}
+                                                            {booking.status === 'confirmed' && (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant={booking.financials?.payment_status === 'paid' ? "secondary" : "outline"}
+                                                                    className={cn("h-8 text-xs", booking.financials?.payment_status === 'paid' ? "bg-green-100 text-green-700 hover:bg-green-200" : "text-slate-500")}
+                                                                    onClick={() => handlePaymentUpdate(booking.id)}
+                                                                >
+                                                                    {booking.financials?.payment_status === 'paid' ? "Paid ✅" : "Mark Paid"}
+                                                                </Button>
                                                             )}
                                                             <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => alert("Rescheduling feature coming soon!")}>Reschedule</Button>
                                                             <Button size="sm" className="h-8 text-xs bg-slate-100 text-slate-700 hover:bg-slate-200" onClick={() => window.open(`https://wa.me/${clientPhone.replace(/[^0-9]/g, "")}`, '_blank')}>Message Client</Button>
