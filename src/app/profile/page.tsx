@@ -106,33 +106,12 @@ export default function ProfilePage() {
                 {/* PROVIDER MENU - UNIFIED DASHBOARD */}
                 {(user.user_metadata?.role === 'provider' || (user as any).role === 'provider' || detectedRole === 'provider') ? (
                     <div className="w-full">
-                        <Tabs defaultValue="dashboard" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2 mb-8">
-                                <TabsTrigger value="dashboard" className="flex items-center gap-2"><LayoutDashboard className="w-4 h-4" /> Dashboard</TabsTrigger>
-                                <TabsTrigger value="settings" className="flex items-center gap-2"><Settings className="w-4 h-4" /> Profile Settings</TabsTrigger>
-                            </TabsList>
-
-                            <TabsContent value="dashboard" className="mt-0">
-                                <Card className="border-none shadow-none bg-transparent">
-                                    <CardContent className="p-0">
-                                        {/* Embed the Main Dashboard Content Here */}
-                                        <DashboardContent />
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-
-                            <TabsContent value="settings">
-                                <Card>
-                                    <CardHeader>
-                                        <CardTitle>Profile Settings</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        <p className="text-muted-foreground">To update your profile information, services, or bio, please use the sidebar actions in the dashboard view or contact support for checking.</p>
-                                        <Button variant="outline">Edit Bio & Services</Button>
-                                    </CardContent>
-                                </Card>
-                            </TabsContent>
-                        </Tabs>
+                        <Card className="border-none shadow-none bg-transparent">
+                            <CardContent className="p-0">
+                                {/* Embed the Main Dashboard Content Here */}
+                                <DashboardContent />
+                            </CardContent>
+                        </Card>
                     </div>
                 ) : (
                     /* USER MENU - Show Bookings */
