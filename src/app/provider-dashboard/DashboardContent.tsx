@@ -374,7 +374,7 @@ export default function DashboardClient() {
                                     className="w-full justify-start text-muted-foreground hover:text-foreground cursor-pointer"
                                     onClick={() => document.getElementById("schedule-section")?.scrollIntoView({ behavior: "smooth" })}
                                 >
-                                    <Calendar className="mr-2 h-4 w-4" />
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
                                     Schedule & Hours
                                 </Button>
                                 <Button
@@ -538,7 +538,7 @@ export default function DashboardClient() {
                             <div id="appointments-section" className="mb-0 border-b pb-8 scroll-mt-24">
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="flex items-center gap-2 text-foreground">
-                                        <Calendar className="h-5 w-5 text-eucalyptus" />
+                                        <CalendarIcon className="h-5 w-5 text-eucalyptus" />
                                         <h3 className="font-semibold text-lg">Upcoming Appointments</h3>
                                     </div>
                                     <Button
@@ -744,7 +744,7 @@ export default function DashboardClient() {
                             {/* Working Days */}
                             <div id="schedule-section" className="mb-8 scroll-mt-24">
                                 <div className="flex items-center gap-2 mb-4 text-foreground">
-                                    <Calendar className="h-5 w-5 text-eucalyptus" />
+                                    <CalendarIcon className="h-5 w-5 text-eucalyptus" />
                                     <h3 className="font-semibold text-lg">Working Days</h3>
                                 </div>
                                 <p className="text-sm text-muted-foreground mb-4">Select the days you are available to accept bookings.</p>
