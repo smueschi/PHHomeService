@@ -16,11 +16,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReviewModal } from "@/components/feature/Reviews/ReviewModal";
 
 export default function ProfilePage() {
-    const { user, isLoading, signOut } = useAuth();
-    const router = useRouter();
-    const [bookings, setBookings] = useState<any[]>([]);
-    const [loadingBookings, setLoadingBookings] = useState(true);
-    const [detectedRole, setDetectedRole] = useState<string | null>(null);
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [selectedBookingForReview, setSelectedBookingForReview] = useState<any>(null);
+    const [profileName, setProfileName] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isLoading && !user) {
@@ -33,28 +31,28 @@ export default function ProfilePage() {
             if (user) {
                 // Determine Role: metadata or DB fetch
                 let currentRole = user.user_metadata?.role || (user as any).role;
+                let fetchedName = user.user_metadata?.full_name || user.user_metadata?.name;
 
-                // If not in metadata, fetch from DB to be sure
-                if (!currentRole) {
-                    try {
-                        // Dynamically import to avoid cyclic deps if any, or just use api
-                        const { getProviderProfile } = await import("@/lib/api");
-                        const profile = await getProviderProfile(user.id);
-                        if (profile && profile.role) {
-                            currentRole = profile.role;
-                            // Optional: Update local user object for this session if possible, or just local state
-                            // (user as any).role = profile.role; 
-                        }
-                    } catch (e) {
-                        console.error("Failed to fetch role", e);
+                // Try to fetch profile from DB to get role and name
+                try {
+                    const { getProviderProfile } = await import("@/lib/api");
+                    // Note: 'getProviderProfile' actually fetches from 'profiles' table which covers all users
+                    const profile = await getProviderProfile(user.id);
+
+                    if (profile) {
+                        if (profile.role) currentRole = profile.role;
+                        if (profile.name) fetchedName = profile.name;
                     }
+                } catch (e) {
+                    console.error("Failed to fetch profile", e);
                 }
 
-                // Force state update if needed, but for now we rely on the render check
-                // We'll expose this role to the render via a state if it wasn't there before
+                if (fetchedName) {
+                    setProfileName(fetchedName);
+                }
+
+                // Force state update if needed
                 if (currentRole === 'provider') {
-                    // We need to ensure the render sees this. 
-                    // Since 'user' object reference isn't changing, let's add a local state for role
                     setDetectedRole('provider');
                 }
 
@@ -74,10 +72,6 @@ export default function ProfilePage() {
     // Rough check for role, ideally should come from context or db
     const role = user.user_metadata?.role || (user as any).role;
 
-    // Review Modal State
-    const [reviewModalOpen, setReviewModalOpen] = useState(false);
-    const [selectedBookingForReview, setSelectedBookingForReview] = useState<any>(null);
-
     const handleReviewClick = (booking: any) => {
         setSelectedBookingForReview(booking);
         setReviewModalOpen(true);
@@ -94,7 +88,7 @@ export default function ProfilePage() {
                     </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-center md:text-left space-y-1">
-                    <h1 className="text-2xl font-bold">{user.user_metadata?.full_name || "Valued Customer"}</h1>
+                    <h1 className="text-2xl font-bold">{profileName || user.user_metadata?.full_name || "Valued Customer"}</h1>
                     <p className="text-muted-foreground">{user.email}</p>
                     <p className="text-xs text-muted-foreground uppercase tracking-wider">Member since {new Date(user.created_at).getFullYear()}</p>
                 </div>

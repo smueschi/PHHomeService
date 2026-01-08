@@ -123,8 +123,12 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
+        console.log("Starting booking submission...");
         try {
-            if (!therapist || !selectedService || !formData.date) return;
+            if (!therapist || !selectedService || !formData.date) {
+                console.error("Missing required fields:", { therapist, selectedService, date: formData.date });
+                throw new Error("Missing required fields");
+            }
 
             const payload = {
                 date: format(formData.date, "yyyy-MM-dd"),
@@ -151,29 +155,35 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                 },
                 // Add default status
                 status: "pending"
-                // inputs, options, upsell left empty for now
             };
 
+            console.log("Submitting Payload:", payload);
+
             const result = await createBooking(payload);
+            console.log("Booking Success Result:", result);
 
             // Send Email Notification to Provider
-            await sendProviderNotification({
-                serviceName: payload.service_code,
-                customerName: payload.customer.name,
-                date: payload.date,
-                time: payload.time,
-                // In a real app, we'd fetch provider email. For now, we rely on the API content or mock.
-                // We'll pass the provider's ID or Name for logging.
-                providerName: therapist.name
-            });
+            try {
+                await sendProviderNotification({
+                    serviceName: payload.service_code,
+                    customerName: payload.customer.name,
+                    date: payload.date,
+                    time: payload.time,
+                    providerName: therapist.name
+                });
+            } catch (notifyError) {
+                console.warn("Failed to send notification:", notifyError);
+                // Continue execution, don't block success
+            }
 
             // If result has an ID (it should), show it
             const refId = result?.id ? `BK-${result.id.slice(0, 8).toUpperCase()}` : `BK-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
             setBookingRef(refId);
             setStep(5); // Success Step
-        } catch (error) {
-            console.error("Booking failed:", error);
-            alert("Failed to create booking. Please try again.");
+        } catch (error: any) {
+            console.error("Booking failed FULL ERROR:", error);
+            const msg = error?.message || error?.details || "Unknown error occurred";
+            alert(`Failed to create booking. Error: ${msg}`);
         } finally {
             setIsSubmitting(false);
         }
