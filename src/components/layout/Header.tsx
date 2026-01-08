@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 export function Header() {
     const { user } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [userRole, setUserRole] = useState<"provider" | "user" | null>(null);
+    const [userRole, setUserRole] = useState<"provider" | "user" | "admin" | null>(null);
 
     useEffect(() => {
         const fetchRole = async () => {
@@ -27,7 +27,7 @@ export function Header() {
                     .single();
 
                 if (data) {
-                    setUserRole(data.role as "provider" | "user");
+                    setUserRole(data.role as "provider" | "user" | "admin");
                 }
             } catch (err) {
                 console.error("Error fetching user role:", err);
@@ -66,6 +66,11 @@ export function Header() {
                         <Link href="/join" className="hover:text-eucalyptus transition-colors" onClick={handleNavClick}>
                             Join as Pro
                         </Link>
+                        {userRole === 'admin' && (
+                            <Link href="/admin" className="hover:text-eucalyptus transition-colors font-semibold text-eucalyptus" onClick={handleNavClick}>
+                                Admin
+                            </Link>
+                        )}
                         {user ? (
                             <Link href="/profile" className="hover:text-eucalyptus transition-colors flex items-center gap-2" onClick={handleNavClick}>
                                 <User className="w-5 h-5" />
@@ -104,6 +109,11 @@ export function Header() {
                         <Link href="/join" className="hover:text-eucalyptus py-2 border-b border-gray-100" onClick={handleNavClick}>
                             Join as Pro
                         </Link>
+                        {userRole === 'admin' && (
+                            <Link href="/admin" className="hover:text-eucalyptus py-2 border-b border-gray-100 font-bold text-eucalyptus" onClick={handleNavClick}>
+                                Admin Panel
+                            </Link>
+                        )}
                         {user ? (
                             <Link href="/profile" className="hover:text-eucalyptus py-2 border-b border-gray-100 flex items-center gap-2" onClick={handleNavClick}>
                                 <User className="w-5 h-5" />

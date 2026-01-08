@@ -54,8 +54,20 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
     const isStep4Valid = !!formData.name && isValidMobileNumber(formData.client_phone) && !!formData.address;
 
     // Derived Data
-    const selectedServicePrice = selectedService && therapist?.serviceRates ? therapist.serviceRates[selectedService] : null;
-    const basePrice = selectedServicePrice || therapist?.price || 500;
+    const DEFAULT_SERVICES: Record<string, number> = {
+        "Swedish Massage": 700,
+        "Shiatsu Massage": 750,
+        "Deep Tissue": 800,
+        "Thai Massage": 750,
+        "Ventosa Cups": 800
+    };
+
+    const serviceOptions = (therapist?.serviceRates && Object.keys(therapist.serviceRates).length > 0
+        ? therapist.serviceRates
+        : DEFAULT_SERVICES) as Record<string, number>;
+
+    const selectedServicePrice = selectedService && serviceOptions[selectedService] ? serviceOptions[selectedService] : (therapist?.price || 500);
+    const basePrice = selectedServicePrice;
 
     // Pass Calculations (Hardcoded Logic for Demo based on PassCalculator)
     const weeklySessions = 4;
@@ -184,40 +196,33 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                     {step === 1 && (
                         <div className="space-y-4">
                             <h3 className="font-semibold text-slate-800">Select a Service</h3>
-                            <div className="grid gap-3">
-                                {Object.entries(therapist.serviceRates || {}).map(([id, price]) => (
+                            <div className="space-y-3">
+                                {Object.entries(serviceOptions).map(([name, price]) => (
                                     <div
-                                        key={id}
-                                        onClick={() => setSelectedService(id)}
-                                        className={cn(
-                                            "flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all",
-                                            selectedService === id ? "border-eucalyptus bg-eucalyptus/5" : "border-slate-100 hover:border-slate-200"
-                                        )}
+                                        key={name}
+                                        onClick={() => {
+                                            setSelectedService(name);
+                                            setStep(2);
+                                        }}
+                                        className="p-4 rounded-xl border hovered-card cursor-pointer flex justify-between items-center group transition-all duration-300"
                                     >
                                         <div>
-                                            <p className="font-medium text-slate-900 capitalize">{id.replace("massage-", "").replace(/-/g, " ")}</p>
-                                            <p className="text-xs text-slate-500">{therapist.duration} mins • Service Variant</p>
+                                            <h3 className="font-semibold text-lg text-slate-800 group-hover:text-eucalyptus transition-colors">{name}</h3>
+                                            <p className="text-slate-500 text-sm">60 mins</p>
                                         </div>
-                                        <Badge variant="secondary" className="bg-white">₱{price}</Badge>
+                                        <div className="font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-full group-hover:bg-eucalyptus/10 group-hover:text-eucalyptus transition-colors">
+                                            ₱{price}
+                                        </div>
                                     </div>
                                 ))}
-                                {/* Fallback if no services defined */}
-                                {Object.keys(therapist.serviceRates || {}).length === 0 && (
-                                    <div
-                                        onClick={() => setSelectedService("massage")}
-                                        className={cn(
-                                            "flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all",
-                                            selectedService === "massage" ? "border-eucalyptus bg-eucalyptus/5" : "border-slate-100 hover:border-slate-200"
-                                        )}
-                                    >
-                                        <div>
-                                            <p className="font-medium text-slate-900">Whole Body Massage</p>
-                                            <p className="text-xs text-slate-500">60 mins</p>
-                                        </div>
-                                        <Badge variant="secondary" className="bg-white">₱{therapist.price}</Badge>
-                                    </div>
-                                )}
                             </div>
+
+                            {/* Fallback Display (Only if empty, though default logic should prevent this, safety check) */}
+                            {Object.keys(therapist.serviceRates || {}).length === 0 && Object.keys(serviceOptions).length === 0 && (
+                                <div className="p-4 border border-dashed rounded-xl text-center text-slate-500">
+                                    No services available.
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -507,6 +512,6 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                     </div>
                 )}
             </DialogContent>
-        </Dialog>
+        </Dialog >
     );
 }

@@ -33,32 +33,49 @@ const formatTime = (time: string) => {
 };
 
 // Helper to map DB Row -> Therapist object (camelCase)
-const mapProfileToTherapist = (row: any): Therapist => ({
-    id: row.id,
-    name: row.name || "Provider",
-    image: row.image || "",
-    isVerified: row.is_verified || false,
-    bookings: row.bookings_count || 0,
-    rating: Number(row.rating || 0),
-    tags: row.tags || [],
-    category: row.category || "Uncategorized",
-    price: Number(row.price || 0),
-    duration: row.duration || "60 min",
-    bio: row.bio || "",
-    availability: formatScheduleToAvailability(row.schedule),
-    schedule: row.schedule || { workingDays: [], workingHours: { start: "09:00", end: "17:00" }, blockedDates: [], onHoliday: false },
-    specialties: row.specialties || [],
-    walletCredits: Number(row.wallet_credits || 0),
-    location: row.location || "Philippines",
-    rates: row.rates || {},
-    customRates: row.custom_rates || {},
-    addons: row.addons || [],
-    serviceRates: row.service_rates || {},
-    contactNumber: row.contact_number || "",
-    contactPreference: row.contact_preference || "any",
-    reviews: row.reviews || [],
-    role: row.role || "provider"
-});
+const mapProfileToTherapist = (row: any): Therapist => {
+    // Handle location safely: might be string or JSON
+    let locationObj: { name: string, lat: number, lng: number } = { name: "Philippines", lat: 14.5995, lng: 120.9842 }; // Default Manila
+
+    if (row.location) {
+        if (typeof row.location === 'string') {
+            locationObj = { name: row.location, lat: 14.5995, lng: 120.9842 };
+        } else if (typeof row.location === 'object') {
+            locationObj = {
+                name: row.location.name || "Unknown",
+                lat: row.location.lat || 14.5995,
+                lng: row.location.lng || 120.9842
+            };
+        }
+    }
+
+    return {
+        id: row.id,
+        name: row.name || "Provider",
+        image: row.image || "",
+        isVerified: row.is_verified || false,
+        bookings: row.bookings_count || 0,
+        rating: Number(row.rating || 0),
+        tags: row.tags || [],
+        category: row.category || "Uncategorized",
+        price: Number(row.price || 0),
+        duration: row.duration || "60 min",
+        bio: row.bio || "",
+        availability: formatScheduleToAvailability(row.schedule),
+        schedule: row.schedule || { workingDays: [], workingHours: { start: "09:00", end: "17:00" }, blockedDates: [], onHoliday: false },
+        specialties: row.specialties || [],
+        walletCredits: Number(row.wallet_credits || 0),
+        location: locationObj,
+        rates: row.rates || {},
+        customRates: row.custom_rates || {},
+        addons: row.addons || [],
+        serviceRates: row.service_rates || {},
+        contactNumber: row.contact_number || "",
+        contactPreference: row.contact_preference || "any",
+        reviews: row.reviews || [],
+        role: row.role || "provider"
+    };
+};
 
 // Helper to map DB Row -> CategoryRequest
 const mapRowToRequest = (row: any): CategoryRequest => ({

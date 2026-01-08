@@ -9,7 +9,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { LayoutDashboard, User } from "lucide-react";
+import { LayoutDashboard, User, Settings, Calendar } from "lucide-react";
+// Import dashboard content
+import DashboardContent from "@/app/provider-dashboard/DashboardContent";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ProfilePage() {
     const { user, isLoading, signOut } = useAuth();
@@ -91,33 +94,36 @@ export default function ProfilePage() {
             {/* Role-Based Content */}
             <div className="grid gap-6">
                 {/* PROVIDER MENU */}
+                {/* PROVIDER MENU - UNIFIED DASHBOARD */}
                 {(user.user_metadata?.role === 'provider' || (user as any).role === 'provider' || detectedRole === 'provider') ? (
-                    <div className="space-y-6">
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <Card className="bg-eucalyptus/5 border-eucalyptus/20 hover:border-eucalyptus transition-colors cursor-pointer" onClick={() => router.push('/provider-dashboard')}>
-                                <CardContent className="p-6 flex items-center gap-4">
-                                    <div className="bg-eucalyptus text-white p-3 rounded-full">
-                                        <LayoutDashboard className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-lg text-slate-800">Provider Dashboard</h3>
-                                        <p className="text-sm text-slate-500">Manage bookings, schedule, and earnings</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                    <div className="w-full">
+                        <Tabs defaultValue="dashboard" className="w-full">
+                            <TabsList className="grid w-full grid-cols-2 mb-8">
+                                <TabsTrigger value="dashboard" className="flex items-center gap-2"><LayoutDashboard className="w-4 h-4" /> Dashboard</TabsTrigger>
+                                <TabsTrigger value="settings" className="flex items-center gap-2"><Settings className="w-4 h-4" /> Profile Settings</TabsTrigger>
+                            </TabsList>
 
-                            <Card className="hover:border-slate-300 transition-colors cursor-pointer">
-                                <CardContent className="p-6 flex items-center gap-4">
-                                    <div className="bg-slate-100 text-slate-600 p-3 rounded-full">
-                                        <User className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-lg text-slate-800">Edit Profile</h3>
-                                        <p className="text-sm text-slate-500">Update bio, services, and photos</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
+                            <TabsContent value="dashboard" className="mt-0">
+                                <Card className="border-none shadow-none bg-transparent">
+                                    <CardContent className="p-0">
+                                        {/* Embed the Main Dashboard Content Here */}
+                                        <DashboardContent />
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            <TabsContent value="settings">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Profile Settings</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <p className="text-muted-foreground">To update your profile information, services, or bio, please use the sidebar actions in the dashboard view or contact support for checking.</p>
+                                        <Button variant="outline">Edit Bio & Services</Button>
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+                        </Tabs>
                     </div>
                 ) : (
                     /* USER MENU - Show Bookings */
