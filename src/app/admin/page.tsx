@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAllPendingRequests, adminApproveRequest, adminRejectRequest, getAllProfiles, updateUserRole, getProviderProfile } from "@/lib/api";
+import { getAllPendingRequests, adminApproveRequest, adminRejectRequest, getAllProfiles, updateUserRole, getProviderProfile, adminAddCredits } from "@/lib/api";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserCog, User, Lock, Loader2, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
+import { UserCog, User, Lock, Loader2, ShieldAlert, CheckCircle2, XCircle, Coins } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function AdminDashboard() {
@@ -65,10 +65,30 @@ export default function AdminDashboard() {
             ]);
             setRequests(reqData);
             setUsers(userData);
+            setUsers(userData);
         } catch (error) {
             console.error("Failed to fetch data", error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleAddCredits = async (providerId: string) => {
+        const amountStr = prompt("Enter credits to add (e.g., 5, 10, 50):", "10");
+        if (!amountStr) return;
+        const amount = parseInt(amountStr);
+        if (isNaN(amount) || amount <= 0) {
+            alert("Invalid amount");
+            return;
+        }
+
+        try {
+            await adminAddCredits(providerId, amount);
+            alert(`Successfully added ${amount} credits.`);
+            fetchData();
+        } catch (e) {
+            console.error(e);
+            alert("Failed to add credits.");
         }
     };
 
@@ -262,7 +282,12 @@ export default function AdminDashboard() {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>{u.category}</TableCell>
-                                                <TableCell className="text-right">
+                                                <TableCell className="text-right flex items-center justify-end gap-2">
+                                                    {u.role === 'provider' && (
+                                                        <Button size="sm" variant="outline" className="text-xs h-8 text-eucalyptus border-eucalyptus/30 hover:bg-eucalyptus/5" onClick={() => handleAddCredits(u.id)}>
+                                                            <Coins className="h-3 w-3 mr-1" /> Grant C.
+                                                        </Button>
+                                                    )}
                                                     {u.role !== 'admin' ? (
                                                         <Button size="sm" variant="outline" className="text-xs h-8" onClick={() => handleRoleChange(u.id, 'admin')}>
                                                             <UserCog className="h-3 w-3 mr-1" /> Make Admin

@@ -202,6 +202,10 @@ export default function DashboardClient() {
         setActionLoading(bookingId);
         try {
             if (newStatus === 'confirmed') {
+                if (!authUser) {
+                    alert("Authentication error. Please reload.");
+                    return;
+                }
                 // Deduct Credit Logic
                 await updateBookingAndDeductCredit(bookingId, authUser.id);
                 setCredits(prev => prev - 1);

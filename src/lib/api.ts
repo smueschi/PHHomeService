@@ -688,3 +688,7 @@ export const topUpCredits = async (providerId: string, amount: number) => {
 
     if (error) throw error;
 };
+
+export const adminAddCredits = async (providerId: string, amount: number) => {
+    return topUpCredits(providerId, amount);
+};
