@@ -55,7 +55,9 @@ const mapProfileToTherapist = (row: any): Therapist => {
         image: row.image || "",
         isVerified: row.is_verified || false,
         bookings: row.bookings_count || 0,
-        rating: Number(row.rating || 0),
+        rating: row.reviews && row.reviews.length > 0
+            ? Number((row.reviews.reduce((acc: number, r: any) => acc + r.rating, 0) / row.reviews.length).toFixed(1))
+            : Number(row.rating || 0),
         tags: row.tags || [],
         category: row.category || "Uncategorized",
         price: Number(row.price || 0),
