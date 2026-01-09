@@ -382,13 +382,21 @@ export default function DashboardClient() {
                                             variant="outline"
                                             className="h-28 flex flex-col gap-1 hover:border-eucalyptus hover:bg-eucalyptus/5 relative overflow-hidden"
                                             onClick={async () => {
-                                                if (!authUser) return;
+                                                if (!authUser) {
+                                                    alert("Please log in again to top up.");
+                                                    return;
+                                                }
                                                 // MOCK PAYMENT
                                                 if (confirm(`Pay PHP ${pack.price} for ${pack.qty} credits?`)) {
-                                                    await topUpCredits(authUser.id, pack.qty);
-                                                    setCredits(prev => prev + pack.qty);
-                                                    setIsTopUpOpen(false);
-                                                    alert("Payment Successful! Credits added.");
+                                                    try {
+                                                        await topUpCredits(authUser.id, pack.qty);
+                                                        setCredits(prev => prev + pack.qty);
+                                                        setIsTopUpOpen(false);
+                                                        alert("Payment Successful! Credits added.");
+                                                    } catch (e) {
+                                                        console.error("Top up failed", e);
+                                                        alert("Top up failed. Please try again.");
+                                                    }
                                                 }
                                             }}
                                         >
@@ -399,9 +407,14 @@ export default function DashboardClient() {
                                             )}
                                             <span className="text-3xl font-bold text-slate-800">{pack.qty}</span>
                                             <span className="text-sm text-muted-foreground -mt-1">Credits</span>
-                                            <Badge variant="secondary" className="mt-1 bg-eucalyptus/10 text-eucalyptus hover:bg-eucalyptus/20 border-none">
-                                                PHP {pack.price}
-                                            </Badge>
+                                            <div className="flex flex-col items-center mt-1">
+                                                <Badge variant="secondary" className="bg-eucalyptus/10 text-eucalyptus hover:bg-eucalyptus/20 border-none">
+                                                    ₱{pack.price}
+                                                </Badge>
+                                                <span className="text-[10px] text-slate-400 mt-0.5">
+                                                    (₱{(pack.price / pack.qty).toFixed(2)}/ea)
+                                                </span>
+                                            </div>
                                         </Button>
                                     ))}
                                 </div>
