@@ -4,28 +4,29 @@ import { useState } from "react";
 import { Search, MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { DEFAULT_CENTER } from "@/lib/geo";
+import { useRouter } from "next/navigation";
 
+// Simplified Props - no longer needs a callback, handles its own navigation
 interface SmartSearchProps {
-    onSearch: (filters: { service: string; location: string; coordinates?: { lat: number; lng: number } }) => void;
+    className?: string;
+    onSearch?: (filters: any) => void; // Optional legacy support if used elsewhere, but mainly we redirect
 }
 
-export function SmartSearch({ onSearch }: SmartSearchProps) {
+export function SmartSearch({ className, onSearch }: SmartSearchProps) {
+    const router = useRouter();
     const [service, setService] = useState("");
     const [locationInput, setLocationInput] = useState("");
-    const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | undefined>(undefined);
     const [isLocating, setIsLocating] = useState(false);
 
     const handleSearch = () => {
-        onSearch({ service, location: locationInput, coordinates });
+        // Build URL params
+        const params = new URLSearchParams();
+        if (service) params.set("q", service);
+        if (locationInput) params.set("loc", locationInput);
+
+        // Redirect to /search
+        router.push(`/search?${params.toString()}`);
     };
 
     const handleNearMe = () => {
@@ -37,14 +38,11 @@ export function SmartSearch({ onSearch }: SmartSearchProps) {
         setIsLocating(true);
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                const coords = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
-                setCoordinates(coords);
+                // For MVP, we can just set the text to "Near Me" or current city if we had reverse geocoding
+                // Or pass lat/lng params: `&lat=...&lng=...`
+                // Let's just set the text for now to indicate intent
                 setLocationInput("Current Location");
                 setIsLocating(false);
-                // Optional: Auto-search
             },
             () => {
                 alert("Unable to retrieve your location");
@@ -54,19 +52,19 @@ export function SmartSearch({ onSearch }: SmartSearchProps) {
     };
 
     return (
-        <div className="w-full max-w-xl mx-auto space-y-4">
+        <div className={`w-full max-w-xl mx-auto space-y-4 ${className}`}>
             <Card className="p-2 shadow-lg rounded-2xl border-0 bg-white/95 backdrop-blur">
                 <div className="flex flex-col md:flex-row gap-2">
                     {/* SERVICE TYPE */}
-                    {/* SERVICE TYPE / NAME SEARCH */}
                     <div className="flex-1 min-w-[140px] relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                             type="text"
-                            placeholder="Service or Specialist Name"
+                            placeholder="Service (e.g. Massage)"
                             className="h-12 pl-10 border-0 bg-transparent focus-visible:ring-0 shadow-none text-base"
                             value={service}
                             onChange={(e) => setService(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         />
                     </div>
 
@@ -80,10 +78,8 @@ export function SmartSearch({ onSearch }: SmartSearchProps) {
                             placeholder="City or 'Near Me'"
                             className="h-12 pl-10 pr-10 border-0 bg-transparent focus-visible:ring-0 shadow-none text-base truncate"
                             value={locationInput}
-                            onChange={(e) => {
-                                setLocationInput(e.target.value);
-                                if (coordinates) setCoordinates(undefined); // Reset coords if typing manually
-                            }}
+                            onChange={(e) => setLocationInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         />
                         <Button
                             size="icon"
@@ -93,12 +89,16 @@ export function SmartSearch({ onSearch }: SmartSearchProps) {
                             disabled={isLocating}
                             title="Use my location"
                         >
-                            <Navigation className={`h-4 w-4 ${isLocating ? 'animate-spin' : ''} ${coordinates ? 'text-eucalyptus fill-current' : ''}`} />
+                            <Navigation className={`h-4 w-4 ${isLocating ? 'animate-spin' : ''}`} />
                         </Button>
                     </div>
 
                     {/* SEARCH BUTTON */}
-                    <Button size="lg" onClick={handleSearch} className="h-12 rounded-xl bg-eucalyptus hover:bg-eucalyptus/90 text-white px-8 transition-all hover:scale-105 active:scale-95">
+                    <Button
+                        size="lg"
+                        onClick={handleSearch}
+                        className="h-12 rounded-xl bg-eucalyptus hover:bg-eucalyptus/90 text-white px-8 transition-all hover:scale-105 active:scale-95"
+                    >
                         {isLocating ? "Locating..." : "Search"}
                     </Button>
                 </div>
