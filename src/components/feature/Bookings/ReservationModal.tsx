@@ -111,7 +111,7 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
             default:
                 // Generic fallback for OTHER or new categories
                 return {
-                    "Standard Service": therapist.price || 500
+                    "Standard Service": therapist?.price || 500
                 };
         }
     }, [therapist]);

@@ -58,7 +58,7 @@ export interface Therapist {
     bookings: number;
     rating: number;
     tags: string[]; // Used for Category Filtering
-    category: "MASSAGE" | "CLEANING" | "BEAUTY" | "AIRCON" | "CHEF" | "NANNY" | "REPAIR" | "OTHER";
+    category: "MASSAGE" | "CLEANING" | "BEAUTY" | "AIRCON" | "CHEF" | "NANNY" | "REPAIR" | "PLUMBING" | "ELECTRICIAN" | "OTHER";
     price: number;
     duration: number;
     bio: string;
