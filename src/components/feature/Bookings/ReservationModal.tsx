@@ -93,9 +93,26 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                     "Maintenance": 1000,
                     "Installation": 2500
                 };
+            case 'CHEF':
+                return {
+                    "Boodle Fight": 2500,
+                    "Seafood Grill": 3000,
+                    "Plated Dinner": 2800,
+                    "Private Chef Labor": 600
+                };
+            case 'NANNY':
+                return {
+                    "Standard Babysitting": 250,
+                    "Night Shift": 350,
+                    "Newborn Care": 400
+                };
             case 'MASSAGE':
-            default:
                 return DEFAULT_SERVICES;
+            default:
+                // Generic fallback for OTHER or new categories
+                return {
+                    "Standard Service": therapist.price || 500
+                };
         }
     }, [therapist]);
 
