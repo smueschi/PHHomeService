@@ -111,7 +111,7 @@ export function ChatWindow({ otherUserId, otherUserName, otherUserImage, otherUs
             "flex flex-col shadow-2xl border-slate-200 z-50 bg-white overflow-hidden",
             variant === "popup"
                 ? "fixed bottom-4 right-4 w-80 md:w-96 h-[500px]"
-                : "flex-1 w-full h-full border-none shadow-none rounded-none", // Changed relative to flex-1 to fill parent
+                : "flex-1 w-full border-none shadow-none rounded-none", // Changed relative to flex-1 to fill parent, removed h-full to avoid overflow
             className
         )}>
             {/* Header */}
