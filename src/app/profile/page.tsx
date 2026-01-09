@@ -104,7 +104,7 @@ export default function ProfilePage() {
             <div className="grid gap-6">
                 {/* PROVIDER MENU */}
                 {/* PROVIDER MENU - UNIFIED DASHBOARD */}
-                {(user.user_metadata?.role === 'provider' || user.user_metadata?.role === 'admin' || (user as any).role === 'provider' || (user as any).role === 'admin' || detectedRole === 'provider' || detectedRole === 'admin') ? (
+                {(user.user_metadata?.role === 'provider' || (user as any).role === 'provider' || detectedRole === 'provider') ? (
                     <div className="w-full">
                         <Card className="border-none shadow-none bg-transparent">
                             <CardContent className="p-0">
@@ -112,6 +112,33 @@ export default function ProfilePage() {
                                 <DashboardContent />
                             </CardContent>
                         </Card>
+                    </div>
+                ) : (user.user_metadata?.role === 'admin' || (user as any).role === 'admin' || detectedRole === 'admin') ? (
+                    <div className="w-full">
+                        <Card className="bg-gradient-to-br from-slate-900 to-slate-800 text-white border-none shadow-xl">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <LayoutDashboard className="h-6 w-6" />
+                                    Admin Workspace
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <p className="text-slate-200">
+                                    You have administrative privileges. Access the control panel to manage users, bookings, and platform settings.
+                                </p>
+                                <Button
+                                    className="w-full bg-eucalyptus hover:bg-eucalyptus/90 text-white h-12 text-lg font-medium"
+                                    onClick={() => router.push('/admin')}
+                                >
+                                    Go to Admin Dashboard
+                                </Button>
+                            </CardContent>
+                        </Card>
+
+                        <div className="mt-8">
+                            <h2 className="text-xl font-bold mb-4">Your Personal Bookings</h2>
+                            {/* Fallback to standard booking list below */}
+                        </div>
                     </div>
                 ) : (
                     /* USER MENU - Show Bookings */

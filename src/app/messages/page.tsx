@@ -78,7 +78,7 @@ function MessagesContent() {
     }
 
     return (
-        <div className="flex h-screen bg-slate-50 overflow-hidden">
+        <div className="flex h-full bg-slate-50 overflow-hidden messages-page-wrapper">
             {/* LEFT SIDEBAR: CONVERSATION LIST */}
             <div className={`w-full md:w-80 lg:w-96 border-r bg-white flex flex-col h-full z-10 ${activeChatUser ? 'hidden md:flex' : 'flex'}`}>
                 <div className="p-4 border-b flex items-center gap-2">
