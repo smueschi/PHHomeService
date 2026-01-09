@@ -34,7 +34,6 @@ import { PassCalculator } from "@/components/feature/Dashboard/PassCalculator";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 import { getProviderProfile, getProviderProfileWithReviews, updateProviderSchedule, updateProviderBio, updateProviderContactDetails, updateProviderProfile, getProviderRequests, createProviderRequest, createBooking, uploadProviderDocument, getProviderBookings, updateBookingStatus, updateBookingFinancials, getProviderCredits, topUpCredits, updateBookingAndDeductCredit } from "@/lib/api";
-import { Star } from "lucide-react"; // Import Star
 import { Therapist } from "@/lib/data";
 import { sendBookingConfirmation } from "@/lib/email";
 import { ChatWindow } from "@/components/feature/Chat/ChatWindow";
