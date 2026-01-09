@@ -56,7 +56,7 @@ const generateTimeSlots = (start: string, end: string) => {
 // Removed broken block
 
 export default function DashboardClient() {
-    const { user: authUser, isLoading } = useAuth();
+    const { user: authUser, isLoading, signOut } = useAuth();
     const router = useRouter();
 
     // Remote Data State
@@ -172,6 +172,15 @@ export default function DashboardClient() {
                 setProfileImage(user.image);
             }
         }
+    };
+
+
+
+    const handleLogout = async () => {
+        if (signOut) { // Safe check
+            await signOut();
+        }
+        router.push("/login");
     };
 
     const handleRequestSubmit = async () => {
@@ -427,10 +436,8 @@ export default function DashboardClient() {
                             </Avatar>
                             <span className="text-sm font-medium hidden md:inline-block">{user.name}</span>
                         </div>
-                        <Button variant="ghost" size="icon" asChild>
-                            <Link href="/login">
-                                <LogOut className="h-5 w-5 text-muted-foreground" />
-                            </Link>
+                        <Button variant="ghost" size="icon" onClick={handleLogout}>
+                            <LogOut className="h-5 w-5 text-muted-foreground" />
                         </Button>
                     </div>
                 </div>

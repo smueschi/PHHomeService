@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Filter } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Navbar } from "@/components/layout/Navbar";
+import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
 function SearchPageContent() {
@@ -72,6 +72,7 @@ function SearchPageContent() {
         const matchesText = !queryService ||
             p.name.toLowerCase().includes(queryService.toLowerCase()) ||
             p.category.toLowerCase().includes(queryService.toLowerCase()) ||
+            (p.role && p.role.toLowerCase().includes(queryService.toLowerCase())) ||
             p.tags.some(t => t.toLowerCase().includes(queryService.toLowerCase()));
 
         // 2. Location (Simple includes for now)
@@ -94,7 +95,7 @@ function SearchPageContent() {
 
     return (
         <div className="min-h-screen flex flex-col bg-slate-50">
-            <Navbar />
+            <Header />
 
             {/* Search Header */}
             <div className="bg-white border-b sticky top-0 z-30 shadow-sm">
