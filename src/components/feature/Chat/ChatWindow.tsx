@@ -31,6 +31,35 @@ export function ChatWindow({ otherUserId, otherUserName, otherUserImage, otherUs
     const [isSending, setIsSending] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
+    // Initial Fetch
+    useEffect(() => {
+        if (!user || !otherUserId) {
+            setIsLoading(false);
+            return;
+        }
+
+        const loadMessages = async () => {
+            setIsLoading(true);
+            try {
+                const data = await getConversation(user.id, otherUserId);
+                // Cast to Message[] if types don't align perfectly from API (due to 'any' in filter)
+                setMessages(Array.isArray(data) ? data as Message[] : []);
+
+                // Mark as read
+                if (data && data.length > 0) {
+                    markMessagesAsRead(otherUserId, user.id);
+                }
+            } catch (err) {
+                console.error("Failed to load conversation", err);
+                setMessages([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadMessages();
+    }, [user, otherUserId]);
+
     // ... (rest of useEffects)
 
     const handleSend = async () => {

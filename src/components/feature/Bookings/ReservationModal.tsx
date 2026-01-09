@@ -80,13 +80,18 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                     "Manicure": 350,
                     "Pedicure": 400,
                     "Gel Polish": 700,
-                    "Haircut": 500
+                    "Haircut": 500,
+                    "Makeup": 1500
                 };
             case 'REPAIR':
+            case 'AIRCON':
+            case 'PLUMBING':
+            case 'ELECTRICIAN':
                 return {
                     "Diagnosis/Inspection": 500,
                     "General Repair": 1500,
-                    "Maintenance": 1000
+                    "Maintenance": 1000,
+                    "Installation": 2500
                 };
             case 'MASSAGE':
             default:
