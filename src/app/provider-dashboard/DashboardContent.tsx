@@ -37,6 +37,7 @@ import { getProviderProfile, getProviderProfileWithReviews, updateProviderSchedu
 import { Therapist } from "@/lib/data";
 import { sendBookingConfirmation } from "@/lib/email";
 import { ChatWindow } from "@/components/feature/Chat/ChatWindow";
+import { ConversationList } from "@/components/feature/Chat/ConversationList";
 import { MessageCircle } from "lucide-react";
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -356,7 +357,7 @@ export default function DashboardClient() {
                     </div>
                     <div className="flex items-center gap-4">
                         {/* Credit Display */}
-                        <div className="hidden md:flex items-center gap-2 bg-slate-100 rounded-full px-3 py-1 text-sm font-medium">
+                        <div className="flex items-center gap-2 bg-slate-100 rounded-full px-3 py-1 text-sm font-medium">
                             <span className={credits > 0 ? "text-eucalyptus" : "text-red-500"}>
                                 {credits} Credits
                             </span>
@@ -498,6 +499,14 @@ export default function DashboardClient() {
                                     <LogOut className="mr-2 h-4 w-4" />
                                     Time Off
                                 </Button>
+                                <Button
+                                    variant="ghost"
+                                    className="w-full justify-start text-muted-foreground hover:text-foreground cursor-pointer"
+                                    onClick={() => document.getElementById("messages-section")?.scrollIntoView({ behavior: "smooth" })}
+                                >
+                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                    Messages
+                                </Button>
                             </nav>
                         </Card>
 
@@ -515,7 +524,43 @@ export default function DashboardClient() {
 
                     {/* Main Content Area */}
                     <div className="md:col-span-2 space-y-6">
-                        <div id="profile-header" className="flex items-center justify-between">
+
+
+                        {/* KEY METRICS & CREDITS */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Card className="p-6 rounded-3xl border-none shadow-sm bg-white relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <Sparkles className="w-24 h-24 text-eucalyptus" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Credit Balance</p>
+                                    <div className="flex items-baseline gap-2">
+                                        <h3 className="text-4xl font-black text-eucalyptus">{credits}</h3>
+                                        <span className="text-sm font-medium text-slate-400">credits</span>
+                                    </div>
+                                    <Button
+                                        onClick={() => setIsTopUpOpen(true)}
+                                        className="mt-4 bg-eucalyptus text-white hover:bg-eucalyptus/90 shadow-eucalyptus/20 shadow-lg rounded-xl h-10 px-6"
+                                    >
+                                        + Top Up
+                                    </Button>
+                                </div>
+                            </Card>
+
+                            <Card className="p-6 rounded-3xl border-none shadow-sm bg-white">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Active Bookings</p>
+                                    <h3 className="text-4xl font-black text-slate-800">
+                                        {bookings.filter(b => b.status === 'confirmed').length}
+                                    </h3>
+                                    <p className="text-xs text-slate-400 mt-2">
+                                        {bookings.filter(b => b.status === 'pending').length} pending requests
+                                    </p>
+                                </div>
+                            </Card>
+                        </div>
+
+                        <div id="profile-header" className="flex items-center justify-between pt-4">
                             <h2 className="text-2xl font-bold text-foreground">Profile & Schedule</h2>
                             {isSaved && (
                                 <span className="flex items-center gap-1 text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full animate-in fade-in slide-in-from-right-4">
@@ -1499,6 +1544,29 @@ export default function DashboardClient() {
                                                 </div>
                                             )
                                         })}
+                                </div>
+                            </div>
+
+                            {/* Messages Section */}
+                            <div id="messages-section" className="mb-0 pt-6 border-t scroll-mt-24">
+                                <div className="flex items-center gap-2 mb-4 text-foreground">
+                                    <MessageCircle className="h-5 w-5 text-eucalyptus" />
+                                    <h3 className="font-semibold text-lg">Messages</h3>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <ConversationList
+                                        bookings={bookings}
+                                        activeChatId={activeChatUser?.id || null}
+                                        onSelectUser={(u) => setActiveChatUser({ id: u.id, name: u.name, image: u.image })}
+                                    />
+
+                                    <div className="hidden md:flex flex-col items-center justify-center p-8 bg-white/50 border border-dashed rounded-3xl text-center text-muted-foreground h-[600px]">
+                                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                            <MessageCircle className="w-8 h-8 text-slate-400" />
+                                        </div>
+                                        <h4 className="font-semibold text-slate-700">Select a conversation</h4>
+                                        <p className="text-sm max-w-[200px]">Choose a client from the list to view your chat history.</p>
+                                    </div>
                                 </div>
                             </div>
 
