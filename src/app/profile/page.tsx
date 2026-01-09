@@ -104,7 +104,7 @@ export default function ProfilePage() {
             <div className="grid gap-6">
                 {/* PROVIDER MENU */}
                 {/* PROVIDER MENU - UNIFIED DASHBOARD */}
-                {(user.user_metadata?.role === 'provider' || (user as any).role === 'provider' || detectedRole === 'provider') ? (
+                {(user.user_metadata?.role === 'provider' || user.user_metadata?.role === 'admin' || (user as any).role === 'provider' || (user as any).role === 'admin' || detectedRole === 'provider' || detectedRole === 'admin') ? (
                     <div className="w-full">
                         <Card className="border-none shadow-none bg-transparent">
                             <CardContent className="p-0">

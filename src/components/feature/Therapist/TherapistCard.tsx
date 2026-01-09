@@ -87,7 +87,7 @@ export function TherapistCard({
                                         <span className="font-medium text-foreground">{rating}</span>
                                     </span>
                                     <span>•</span>
-                                    <span>{bookings}+ Bookings</span>
+                                    <span>{bookings} Bookings</span>
                                     {distance && (
                                         <>
                                             <span>•</span>

@@ -372,15 +372,15 @@ export default function DashboardClient() {
                                 </DialogHeader>
                                 <div className="grid grid-cols-2 gap-4 py-4">
                                     {[
-                                        { qty: 10, price: 200 },
-                                        { qty: 25, price: 450 },
-                                        { qty: 50, price: 850 },
-                                        { qty: 100, price: 1600 },
+                                        { qty: 10, price: 200, save: null },
+                                        { qty: 25, price: 450, save: "10%" },
+                                        { qty: 50, price: 850, save: "15%" },
+                                        { qty: 100, price: 1600, save: "20%" },
                                     ].map((pack) => (
                                         <Button
                                             key={pack.qty}
                                             variant="outline"
-                                            className="h-24 flex flex-col gap-1 hover:border-eucalyptus hover:bg-eucalyptus/5"
+                                            className="h-28 flex flex-col gap-1 hover:border-eucalyptus hover:bg-eucalyptus/5 relative overflow-hidden"
                                             onClick={async () => {
                                                 if (!authUser) return;
                                                 // MOCK PAYMENT
@@ -392,9 +392,16 @@ export default function DashboardClient() {
                                                 }
                                             }}
                                         >
-                                            <span className="text-2xl font-bold">{pack.qty}</span>
-                                            <span className="text-sm text-muted-foreground">Credits</span>
-                                            <span className="text-xs font-medium text-eucalyptus">PHP {pack.price}</span>
+                                            {pack.save && (
+                                                <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-bl-lg font-bold">
+                                                    SAVE {pack.save}
+                                                </div>
+                                            )}
+                                            <span className="text-3xl font-bold text-slate-800">{pack.qty}</span>
+                                            <span className="text-sm text-muted-foreground -mt-1">Credits</span>
+                                            <Badge variant="secondary" className="mt-1 bg-eucalyptus/10 text-eucalyptus hover:bg-eucalyptus/20 border-none">
+                                                PHP {pack.price}
+                                            </Badge>
                                         </Button>
                                     ))}
                                 </div>

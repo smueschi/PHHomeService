@@ -406,18 +406,18 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                             <h3 className="font-semibold text-slate-800">Your Details</h3>
                             <div className="space-y-3">
                                 <div>
-                                    <Label>Full Name</Label>
+                                    <Label className="mb-1 block">Full Name</Label>
                                     <Input
                                         value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        className="bg-slate-50"
+                                        className="bg-slate-50 mt-1"
                                         placeholder="Jane Doe"
                                     />
                                 </div>
                                 <div>
-                                    <Label>Mobile Number</Label>
-                                    <div className="relative">
-                                        <Phone className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                                    <Label className="mb-1 block">Mobile Number</Label>
+                                    <div className="relative mt-1">
+                                        <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                                         <Input
                                             className="pl-9"
                                             value={formData.client_phone}
@@ -430,9 +430,9 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                                     )}
                                 </div>
                                 <div>
-                                    <Label>Home Address / Landmark</Label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                                    <Label className="mb-1 block">Home Address / Landmark</Label>
+                                    <div className="relative mt-1">
+                                        <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                                         <Input
                                             className="pl-9"
                                             value={formData.address}
@@ -442,12 +442,12 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
                                     </div>
                                 </div>
                                 <div>
-                                    <Label>Notes (Optional)</Label>
+                                    <Label className="mb-1 block">Notes (Optional)</Label>
                                     <Textarea
                                         value={formData.notes}
                                         onChange={e => setFormData({ ...formData, notes: e.target.value })}
                                         placeholder="Gate code, specific instructions..."
-                                        className="resize-none h-20"
+                                        className="resize-none h-20 mt-1"
                                     />
                                 </div>
                             </div>
