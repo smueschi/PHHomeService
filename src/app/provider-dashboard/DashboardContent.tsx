@@ -502,7 +502,7 @@ export default function DashboardClient() {
                                 <Button
                                     variant="ghost"
                                     className="w-full justify-start text-muted-foreground hover:text-foreground cursor-pointer"
-                                    onClick={() => document.getElementById("messages-section")?.scrollIntoView({ behavior: "smooth" })}
+                                    onClick={() => router.push('/messages')}
                                 >
                                     <MessageCircle className="mr-2 h-4 w-4" />
                                     Messages
@@ -1547,28 +1547,7 @@ export default function DashboardClient() {
                                 </div>
                             </div>
 
-                            {/* Messages Section */}
-                            <div id="messages-section" className="mb-0 pt-6 border-t scroll-mt-24">
-                                <div className="flex items-center gap-2 mb-4 text-foreground">
-                                    <MessageCircle className="h-5 w-5 text-eucalyptus" />
-                                    <h3 className="font-semibold text-lg">Messages</h3>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <ConversationList
-                                        bookings={bookings}
-                                        activeChatId={activeChatUser?.id || null}
-                                        onSelectUser={(u) => setActiveChatUser({ id: u.id, name: u.name, image: u.image })}
-                                    />
 
-                                    <div className="hidden md:flex flex-col items-center justify-center p-8 bg-white/50 border border-dashed rounded-3xl text-center text-muted-foreground h-[600px]">
-                                        <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                                            <MessageCircle className="w-8 h-8 text-slate-400" />
-                                        </div>
-                                        <h4 className="font-semibold text-slate-700">Select a conversation</h4>
-                                        <p className="text-sm max-w-[200px]">Choose a client from the list to view your chat history.</p>
-                                    </div>
-                                </div>
-                            </div>
 
                             {/* Holiday Mode */}
                             <div id="holiday-section" className="mb-0 pt-6 border-t scroll-mt-24">
@@ -1685,17 +1664,7 @@ export default function DashboardClient() {
                 </div>
             </div >
 
-            {/* CHAT WINDOW PORTAL */}
-            {
-                activeChatUser && (
-                    <ChatWindow
-                        otherUserId={activeChatUser.id}
-                        otherUserName={activeChatUser.name}
-                        otherUserImage={activeChatUser.image}
-                        onClose={() => setActiveChatUser(null)}
-                    />
-                )
-            }
+
         </div >
     );
 }

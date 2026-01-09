@@ -17,9 +17,11 @@ interface ChatWindowProps {
     otherUserName: string;
     otherUserImage?: string;
     onClose?: () => void;
+    variant?: "popup" | "fullscreen";
+    className?: string;
 }
 
-export function ChatWindow({ otherUserId, otherUserName, otherUserImage, onClose }: ChatWindowProps) {
+export function ChatWindow({ otherUserId, otherUserName, otherUserImage, onClose, variant = "popup", className }: ChatWindowProps) {
     const { user } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
@@ -121,9 +123,18 @@ export function ChatWindow({ otherUserId, otherUserName, otherUserImage, onClose
     };
 
     return (
-        <Card className="fixed bottom-4 right-4 w-80 md:w-96 h-[500px] flex flex-col shadow-2xl border-slate-200 z-50 bg-white">
+        <Card className={cn(
+            "flex flex-col shadow-2xl border-slate-200 z-50 bg-white overflow-hidden",
+            variant === "popup"
+                ? "fixed bottom-4 right-4 w-80 md:w-96 h-[500px]"
+                : "relative w-full h-full border-none shadow-none rounded-none",
+            className
+        )}>
             {/* Header */}
-            <div className="p-3 border-b flex items-center justify-between bg-eucalyptus text-white rounded-t-xl">
+            <div className={cn(
+                "p-3 border-b flex items-center justify-between bg-eucalyptus text-white shrink-0",
+                variant === "popup" ? "rounded-t-xl" : ""
+            )}>
                 <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8 border-2 border-white/20">
                         <AvatarImage src={otherUserImage} />
