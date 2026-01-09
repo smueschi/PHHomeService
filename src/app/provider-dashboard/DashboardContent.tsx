@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 // import { MOCK_THERAPISTS } from "@/lib/data"; // Replaced by Real API
-import { Calendar as CalendarIcon, Clock, Save, User as UserIcon, LogOut, CheckCircle2, Sparkles, ClipboardList, ChevronDown, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Calendar as CalendarIcon, Clock, Save, User as UserIcon, LogOut, CheckCircle2, Sparkles, ClipboardList, ChevronDown, XCircle, Star } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
