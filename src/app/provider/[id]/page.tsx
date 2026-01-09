@@ -144,10 +144,16 @@ export default function TherapistProfile() {
                                     <p className="text-lg text-muted-foreground">{therapist.specialties[0]} Specialist</p>
 
                                     <div className="flex flex-wrap items-center gap-4 text-sm">
-                                        <div className="flex items-center gap-1 text-amber-500 font-medium">
-                                            <Star className="h-4 w-4 fill-current" />
-                                            <span>{therapist.rating}</span>
-                                            <span className="text-muted-foreground">({therapist.reviews.length} reviews)</span>
+                                        <div className="flex items-center gap-1 font-medium">
+                                            <Star className={cn("h-4 w-4", therapist.reviews.length > 0 ? "fill-amber-500 text-amber-500" : "text-slate-300")} />
+                                            <span>
+                                                {therapist.reviews.length > 0
+                                                    ? (therapist.reviews.reduce((acc, r) => acc + r.rating, 0) / therapist.reviews.length).toFixed(1)
+                                                    : "New"}
+                                            </span>
+                                            <span className="text-muted-foreground">
+                                                ({therapist.reviews.length} {therapist.reviews.length === 1 ? 'review' : 'reviews'})
+                                            </span>
                                         </div>
                                         <div className="flex items-center gap-1 text-muted-foreground">
                                             <MapPin className="h-4 w-4" />

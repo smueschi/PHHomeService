@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 interface ConversationListProps {
     bookings: any[]; // Using bookings as source of truth for now
     activeChatId: string | null;
-    onSelectUser: (user: { id: string; name: string; image?: string }) => void;
+    onSelectUser: (user: { id: string; name: string; image?: string; email?: string }) => void;
 }
 
 export function ConversationList({ bookings, activeChatId, onSelectUser }: ConversationListProps) {

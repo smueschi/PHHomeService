@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Message } from "@/lib/data";
 import { getConversation, sendMessage, markMessagesAsRead } from "@/lib/api";
+import { sendNewMessageNotification } from "@/lib/email";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -16,12 +17,13 @@ interface ChatWindowProps {
     otherUserId: string; // The person we are chatting with
     otherUserName: string;
     otherUserImage?: string;
+    otherUserEmail?: string; // New prop
     onClose?: () => void;
     variant?: "popup" | "fullscreen";
     className?: string;
 }
 
-export function ChatWindow({ otherUserId, otherUserName, otherUserImage, onClose, variant = "popup", className }: ChatWindowProps) {
+export function ChatWindow({ otherUserId, otherUserName, otherUserImage, otherUserEmail, onClose, variant = "popup", className }: ChatWindowProps) {
     const { user } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState("");
@@ -29,69 +31,7 @@ export function ChatWindow({ otherUserId, otherUserName, otherUserImage, onClose
     const [isSending, setIsSending] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Initial Fetch
-    useEffect(() => {
-        if (!user || !otherUserId) return;
-
-        const loadMessages = async () => {
-            setIsLoading(true);
-            const data = await getConversation(user.id, otherUserId);
-            // Cast to Message[] if types don't align perfectly from API (due to 'any' in filter)
-            setMessages(data as Message[]);
-            setIsLoading(false);
-
-            // Mark as read
-            markMessagesAsRead(otherUserId, user.id);
-        };
-
-        loadMessages();
-    }, [user, otherUserId]);
-
-    // Realtime Subscription
-    useEffect(() => {
-        if (!user || !otherUserId) return;
-
-        console.log("Setting up subscription for chat...");
-        const channel = supabase
-            .channel(`chat:${user.id}-${otherUserId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'messages',
-                    filter: `receiver_id=eq.${user.id}`
-                    // Note: Supabase filter might need to be broad if simpler
-                    // But ideally we listen for messages sent TO me OR BY me (though local state handles sent)
-                    // Let's rely on filter for incoming
-                },
-                (payload) => {
-                    console.log("Realtime message received:", payload);
-                    const newMsg = payload.new as Message;
-                    if (newMsg.sender_id === otherUserId) {
-                        setMessages((prev) => [...prev, newMsg]);
-                        markMessagesAsRead(otherUserId, user.id);
-                    }
-                }
-            )
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [user, otherUserId]);
-
-    // Construct the channel properly? Actually, a simple 'messages' channel with a filter on INSERT
-    // is often easier. If we want to see OUR own messages from another tab, we should listen to all messages
-    // involving us.
-    // For now, let's optimize for receiving messages.
-
-    // Scroll to bottom
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [messages]);
+    // ... (rest of useEffects)
 
     const handleSend = async () => {
         if (!newMessage.trim() || !user) return;
@@ -111,12 +51,27 @@ export function ChatWindow({ otherUserId, otherUserName, otherUserImage, onClose
 
             const sentMsg = await sendMessage(tempMsg.content, user.id, otherUserId);
 
-            // Replace temp message with real one (re-fetch not strictly needed if we trust return)
+            // Replace temp message with real one
             setMessages(prev => prev.map(m => m.id === tempMsg.id ? (sentMsg as Message) : m));
+
+            // Send Email Notification (Fire and Forget)
+            if (otherUserEmail) {
+                // Determine 'From' name (Use user's name from auth metadata or context if available, fallback to "User")
+                const fromName = user.user_metadata?.full_name || "A User";
+
+                // We import this function dynamically or assumes it's imported at top.
+                // It was not imported yet. I need to make sure I import it.
+                // Assuming I will add the import in a separate edit or use full path if possible? 
+                // No, I must import it.
+                // For now, let's assume I will add `import { sendNewMessageNotification } from "@/lib/email";`
+
+                // NOTE: I cannot add import in this block easily without hitting top of file. 
+                // I will add the import in a subsequent step.
+                sendNewMessageNotification(otherUserEmail, fromName, tempMsg.content).catch(err => console.error("Email trigger failed", err));
+            }
 
         } catch (error) {
             console.error("Failed to send", error);
-            // Optionally remove the temp message or show error
         } finally {
             setIsSending(false);
         }
@@ -127,7 +82,7 @@ export function ChatWindow({ otherUserId, otherUserName, otherUserImage, onClose
             "flex flex-col shadow-2xl border-slate-200 z-50 bg-white overflow-hidden",
             variant === "popup"
                 ? "fixed bottom-4 right-4 w-80 md:w-96 h-[500px]"
-                : "relative w-full h-full border-none shadow-none rounded-none",
+                : "flex-1 w-full h-full border-none shadow-none rounded-none", // Changed relative to flex-1 to fill parent
             className
         )}>
             {/* Header */}
@@ -185,7 +140,7 @@ export function ChatWindow({ otherUserId, otherUserName, otherUserImage, onClose
             </div>
 
             {/* Input */}
-            <div className="p-3 border-t bg-white">
+            <div className="p-3 border-t bg-white shrink-0">
                 <form
                     onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                     className="flex gap-2"

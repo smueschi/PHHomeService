@@ -31,3 +31,24 @@ export async function sendProviderNotification(bookingDetails: any) {
         return { success: false, error };
     }
 }
+
+export async function sendNewMessageNotification(toEmail: string, fromName: string, messagePreview: string) {
+    try {
+        const response = await fetch('/api/emails', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'new_message',
+                data: {
+                    to: toEmail,
+                    from: fromName,
+                    preview: messagePreview
+                }
+            })
+        });
+        return await response.json();
+    } catch (error) {
+        console.error("Failed to send message notification email:", error);
+        return { success: false, error };
+    }
+}

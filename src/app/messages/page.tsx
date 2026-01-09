@@ -19,7 +19,7 @@ function MessagesContent() {
     const [loadingData, setLoadingData] = useState(true);
 
     // Chat State
-    const [activeChatUser, setActiveChatUser] = useState<{ id: string, name: string, image?: string } | null>(null);
+    const [activeChatUser, setActiveChatUser] = useState<{ id: string, name: string, image?: string, email?: string } | null>(null);
 
     // Initial Fetch
     useEffect(() => {
@@ -40,14 +40,16 @@ function MessagesContent() {
                         setActiveChatUser({
                             id: targetUserId,
                             name: client.name || "Client",
-                            image: client.image
+                            image: client.image,
+                            email: client.email
                         });
-                    } else {
-                        // Fallback if no booking exists yet, might need to fetch profile directly or handle "new chat"
-                        // For now, if ID is passed but no booking, we might not have names. 
-                        // A more robust solution would be fetching the profile by ID.
-                        // For this MVP, we will rely on bookings.
-                        console.warn("Target user has no prior bookings.");
+                    } else if (targetUserId) {
+                        // Fallback: If we have an ID but no booking, we can at least try to chat.
+                        setActiveChatUser({
+                            id: targetUserId,
+                            name: "Client", // Placeholder
+                            image: undefined
+                        });
                     }
                 }
 
@@ -90,7 +92,7 @@ function MessagesContent() {
                     <ConversationList
                         bookings={bookings}
                         activeChatId={activeChatUser?.id || null}
-                        onSelectUser={(u) => setActiveChatUser({ id: u.id, name: u.name, image: u.image })}
+                        onSelectUser={(u) => setActiveChatUser({ id: u.id, name: u.name, image: u.image, email: u.email })}
                     />
                 </div>
             </div>
@@ -124,6 +126,7 @@ function MessagesContent() {
                             otherUserId={activeChatUser.id}
                             otherUserName={activeChatUser.name}
                             otherUserImage={activeChatUser.image}
+                            otherUserEmail={activeChatUser.email}
                             onClose={() => setActiveChatUser(null)}
                             // We will need to update ChatWindow to handle non-fixed mode or we pass a prop
                             // For now, let's pass a `className` prop if it accepts it, or we edit ChatWindow.

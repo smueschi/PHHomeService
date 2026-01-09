@@ -62,13 +62,37 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
         "Ventosa Cups": 800
     };
 
-    const serviceOptions = ((therapist?.serviceRates && Object.keys(therapist.serviceRates).length > 0)
-        ? therapist.serviceRates
-        : (therapist?.category === 'BEAUTY' && therapist?.specialties?.length > 0)
-            ? therapist.specialties.reduce((acc, spec) => ({ ...acc, [spec]: therapist.price || 500 }), {} as Record<string, number>)
-            : (therapist?.category === 'CLEANING')
-                ? { "Standard Cleaning": therapist.price || 500, "Deep Cleaning": (therapist.price || 500) * 1.5 }
-                : DEFAULT_SERVICES) as Record<string, number>;
+    const serviceOptions = useMemo(() => {
+        if (therapist?.serviceRates && Object.keys(therapist.serviceRates).length > 0) {
+            return therapist.serviceRates;
+        }
+
+        // Fallback based on Category
+        switch (therapist?.category) {
+            case 'CLEANING':
+                return {
+                    "Standard Cleaning": therapist.price || 500,
+                    "Deep Cleaning": (therapist.price || 500) * 1.5,
+                    "Move-in/Move-out": (therapist.price || 500) * 2
+                };
+            case 'BEAUTY':
+                return {
+                    "Manicure": 350,
+                    "Pedicure": 400,
+                    "Gel Polish": 700,
+                    "Haircut": 500
+                };
+            case 'REPAIR':
+                return {
+                    "Diagnosis/Inspection": 500,
+                    "General Repair": 1500,
+                    "Maintenance": 1000
+                };
+            case 'MASSAGE':
+            default:
+                return DEFAULT_SERVICES;
+        }
+    }, [therapist]);
 
     const selectedServicePrice = selectedService && serviceOptions[selectedService] ? serviceOptions[selectedService] : (therapist?.price || 500);
     const basePrice = selectedServicePrice;

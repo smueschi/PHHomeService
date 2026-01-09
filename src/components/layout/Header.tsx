@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LayoutDashboard } from "lucide-react";
+import { Menu, X, User, LayoutDashboard, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { supabase } from "@/lib/supabase";
@@ -72,10 +72,16 @@ export function Header() {
                             </Link>
                         )}
                         {user ? (
-                            <Link href="/profile" className="hover:text-eucalyptus transition-colors flex items-center gap-2" onClick={handleNavClick}>
-                                <User className="w-5 h-5" />
-                                Profile
-                            </Link>
+                            <>
+                                <Link href="/messages" className="hover:text-eucalyptus transition-colors flex items-center gap-2" onClick={handleNavClick}>
+                                    <MessageCircle className="w-5 h-5" />
+                                    Messages
+                                </Link>
+                                <Link href="/profile" className="hover:text-eucalyptus transition-colors flex items-center gap-2" onClick={handleNavClick}>
+                                    <User className="w-5 h-5" />
+                                    Profile
+                                </Link>
+                            </>
                         ) : (
                             <Link href="/login" className="hover:text-eucalyptus transition-colors" onClick={handleNavClick}>
                                 Login
