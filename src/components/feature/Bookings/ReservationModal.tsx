@@ -62,13 +62,13 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
         "Ventosa Cups": 800
     };
 
-    const serviceOptions = (therapist?.serviceRates && Object.keys(therapist.serviceRates).length > 0)
+    const serviceOptions = ((therapist?.serviceRates && Object.keys(therapist.serviceRates).length > 0)
         ? therapist.serviceRates
         : (therapist?.category === 'BEAUTY' && therapist?.specialties?.length > 0)
-            ? therapist.specialties.reduce((acc, spec) => ({ ...acc, [spec]: therapist.price || 500 }), {})
+            ? therapist.specialties.reduce((acc, spec) => ({ ...acc, [spec]: therapist.price || 500 }), {} as Record<string, number>)
             : (therapist?.category === 'CLEANING')
                 ? { "Standard Cleaning": therapist.price || 500, "Deep Cleaning": (therapist.price || 500) * 1.5 }
-                : DEFAULT_SERVICES;
+                : DEFAULT_SERVICES) as Record<string, number>;
 
     const selectedServicePrice = selectedService && serviceOptions[selectedService] ? serviceOptions[selectedService] : (therapist?.price || 500);
     const basePrice = selectedServicePrice;
