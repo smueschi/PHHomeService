@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getProviders } from "@/lib/api";
 import { Therapist } from "@/lib/data";
-import { ServiceGrid } from "@/components/feature/Home/ServiceGrid";
+import { TherapistCard } from "@/components/feature/Therapist/TherapistCard";
 import { SearchFilters } from "@/components/feature/Search/SearchFilters";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -87,8 +87,7 @@ function SearchPageContent() {
 
         // 5. Categories
         const matchesCategory = filters.categories.length === 0 ||
-            filters.categories.includes(p.category) ||
-            (p.category === "Therapy" && filters.categories.includes("Massage")); // Example mapping
+            filters.categories.some(c => c.toUpperCase() === p.category);
 
         return matchesText && matchesLocation && matchesPrice && matchesRating && matchesCategory;
     });
@@ -171,7 +170,15 @@ function SearchPageContent() {
                                 ))}
                             </div>
                         ) : filteredProviders.length > 0 ? (
-                            <ServiceGrid providers={filteredProviders} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {filteredProviders.map(provider => (
+                                    <TherapistCard
+                                        key={provider.id}
+                                        {...provider}
+                                        onBook={() => router.push(`/provider/${provider.id}`)}
+                                    />
+                                ))}
+                            </div>
                         ) : (
                             <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
                                 <div className="text-4xl mb-4">🔍</div>
