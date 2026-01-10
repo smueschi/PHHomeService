@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getProviders } from "@/lib/api";
 import { Therapist } from "@/lib/data";
-import { ServiceGrid } from "@/components/feature/Home/ServiceGrid";
+import { TherapistCard } from "@/components/feature/Therapist/TherapistCard";
 import { SearchFilters } from "@/components/feature/Search/SearchFilters";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,8 @@ import { Search, MapPin, Filter } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { ReservationModal } from "@/components/feature/Bookings/ReservationModal";
+import { ServiceCategory } from "@/lib/services";
 
 function SearchPageContent() {
     const searchParams = useSearchParams();
@@ -24,6 +26,10 @@ function SearchPageContent() {
     // Data State
     const [providers, setProviders] = useState<Therapist[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Booking State
+    const [selectedTherapist, setSelectedTherapist] = useState<Therapist | null>(null);
+    const [isBookingOpen, setIsBookingOpen] = useState(false);
 
     // Filter State
     const [filters, setFilters] = useState({
@@ -66,6 +72,12 @@ function SearchPageContent() {
         router.push(`/search?${params.toString()}`);
     };
 
+    // Handle Booking
+    const handleBook = (therapist: Therapist) => {
+        setSelectedTherapist(therapist);
+        setIsBookingOpen(true);
+    };
+
     // Filter Logic
     const filteredProviders = providers.filter(p => {
         // 1. Text Search (Service/Name)
@@ -85,9 +97,9 @@ function SearchPageContent() {
         const matchesRating = p.rating >= filters.minRating;
 
         // 5. Categories
+        // We cast p.category to string to avoid strict enum mismatch issues during loose comparison
         const matchesCategory = filters.categories.length === 0 ||
-            filters.categories.includes(p.category) ||
-            (p.category === "Therapy" && filters.categories.includes("Massage")); // Example mapping
+            filters.categories.includes(p.category);
 
         return matchesText && matchesLocation && matchesPrice && matchesRating && matchesCategory;
     });
@@ -160,7 +172,6 @@ function SearchPageContent() {
                             <h1 className="text-xl font-bold text-slate-800">
                                 {loading ? "Finding providers..." : `Found ${filteredProviders.length} results`}
                             </h1>
-                            {/* Sort Dropdown could go here */}
                         </div>
 
                         {loading ? (
@@ -170,7 +181,15 @@ function SearchPageContent() {
                                 ))}
                             </div>
                         ) : filteredProviders.length > 0 ? (
-                            <ServiceGrid providers={filteredProviders} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {filteredProviders.map(provider => (
+                                    <TherapistCard
+                                        key={provider.id}
+                                        {...provider}
+                                        onBook={() => handleBook(provider)}
+                                    />
+                                ))}
+                            </div>
                         ) : (
                             <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
                                 <div className="text-4xl mb-4">🔍</div>
@@ -192,6 +211,12 @@ function SearchPageContent() {
             </div>
 
             <Footer />
+
+            <ReservationModal
+                open={isBookingOpen}
+                onOpenChange={setIsBookingOpen}
+                therapist={selectedTherapist}
+            />
         </div>
     );
 }
