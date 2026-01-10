@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Filter } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Navbar } from "@/components/layout/Navbar";
+import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 
 function SearchPageContent() {
@@ -94,7 +94,7 @@ function SearchPageContent() {
 
     return (
         <div className="min-h-screen flex flex-col bg-slate-50">
-            <Navbar />
+            <Header />
 
             {/* Search Header */}
             <div className="bg-white border-b sticky top-0 z-30 shadow-sm">
