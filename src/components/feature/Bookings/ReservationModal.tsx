@@ -62,13 +62,59 @@ export function ReservationModal({ therapist, initialServiceId, open, onOpenChan
         "Ventosa Cups": 800
     };
 
-    const serviceOptions = ((therapist?.serviceRates && Object.keys(therapist.serviceRates).length > 0)
-        ? therapist.serviceRates
-        : (therapist?.category === 'BEAUTY' && therapist?.specialties?.length > 0)
-            ? therapist.specialties.reduce((acc, spec) => ({ ...acc, [spec]: therapist.price || 500 }), {} as Record<string, number>)
-            : (therapist?.category === 'CLEANING')
-                ? { "Standard Cleaning": therapist.price || 500, "Deep Cleaning": (therapist.price || 500) * 1.5 }
-                : DEFAULT_SERVICES) as Record<string, number>;
+    const serviceOptions = useMemo(() => {
+        if (therapist?.serviceRates && Object.keys(therapist.serviceRates).length > 0) {
+            return therapist.serviceRates;
+        }
+
+        // Fallback based on Category
+        switch (therapist?.category) {
+            case 'CLEANING':
+                return {
+                    "Standard Cleaning": therapist.price || 500,
+                    "Deep Cleaning": (therapist.price || 500) * 1.5,
+                    "Move-in/Move-out": (therapist.price || 500) * 2
+                };
+            case 'BEAUTY':
+                return {
+                    "Manicure": 350,
+                    "Pedicure": 400,
+                    "Gel Polish": 700,
+                    "Haircut": 500,
+                    "Makeup": 1500
+                };
+            case 'REPAIR':
+            case 'AIRCON':
+            case 'PLUMBING':
+            case 'ELECTRICIAN':
+                return {
+                    "Diagnosis/Inspection": 500,
+                    "General Repair": 1500,
+                    "Maintenance": 1000,
+                    "Installation": 2500
+                };
+            case 'CHEF':
+                return {
+                    "Boodle Fight": 2500,
+                    "Seafood Grill": 3000,
+                    "Plated Dinner": 2800,
+                    "Private Chef Labor": 600
+                };
+            case 'NANNY':
+                return {
+                    "Standard Babysitting": 250,
+                    "Night Shift": 350,
+                    "Newborn Care": 400
+                };
+            case 'MASSAGE':
+                return DEFAULT_SERVICES;
+            default:
+                // Generic fallback for OTHER or new categories
+                return {
+                    "Standard Service": therapist?.price || 500
+                };
+        }
+    }, [therapist]);
 
     const selectedServicePrice = selectedService && serviceOptions[selectedService] ? serviceOptions[selectedService] : (therapist?.price || 500);
     const basePrice = selectedServicePrice;

@@ -14,6 +14,8 @@ import { WriteReviewModal } from "@/components/feature/Reviews/WriteReviewModal"
 import { useState, useEffect } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useRouter } from "next/navigation";
 
 export default function TherapistProfile() {
     const params = useParams();
@@ -25,6 +27,8 @@ export default function TherapistProfile() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [selectedTier, setSelectedTier] = useState<"hourly" | "weekly_pass" | "monthly_pass">("hourly");
+    const { user } = useAuth();
+    const router = useRouter();
 
     // Fetch Provider
     useEffect(() => {
@@ -140,10 +144,16 @@ export default function TherapistProfile() {
                                     <p className="text-lg text-muted-foreground">{therapist.specialties[0]} Specialist</p>
 
                                     <div className="flex flex-wrap items-center gap-4 text-sm">
-                                        <div className="flex items-center gap-1 text-amber-500 font-medium">
-                                            <Star className="h-4 w-4 fill-current" />
-                                            <span>{therapist.rating}</span>
-                                            <span className="text-muted-foreground">({therapist.reviews.length} reviews)</span>
+                                        <div className="flex items-center gap-1 font-medium">
+                                            <Star className={cn("h-4 w-4", therapist.reviews.length > 0 ? "fill-amber-500 text-amber-500" : "text-slate-300")} />
+                                            <span>
+                                                {therapist.reviews.length > 0
+                                                    ? (therapist.reviews.reduce((acc, r) => acc + r.rating, 0) / therapist.reviews.length).toFixed(1)
+                                                    : "New"}
+                                            </span>
+                                            <span className="text-muted-foreground">
+                                                ({therapist.reviews.length} {therapist.reviews.length === 1 ? 'review' : 'reviews'})
+                                            </span>
                                         </div>
                                         <div className="flex items-center gap-1 text-muted-foreground">
                                             <MapPin className="h-4 w-4" />
@@ -155,26 +165,41 @@ export default function TherapistProfile() {
                         </Card>
 
                         {/* CONTACT BUTTON (Based on Preference) */}
-                        <div className="flex gap-4">
-                            {therapist.contactNumber && (therapist.contactPreference === 'whatsapp' || therapist.contactPreference === 'any') && (
-                                <Button
-                                    className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl h-12 text-lg font-medium shadow-md transition-all hover:-translate-y-1"
-                                    onClick={() => window.open(`https://wa.me/63${therapist.contactNumber!.replace(/^0/, '')}`, '_blank')}
-                                >
-                                    <MessageCircle className="mr-2 h-5 w-5" />
-                                    Chat on WhatsApp
-                                </Button>
-                            )}
-                            {therapist.contactNumber && (therapist.contactPreference === 'sms' || therapist.contactPreference === 'any') && (
-                                <Button
-                                    variant="outline"
-                                    className="flex-1 border-foreground/20 hover:border-foreground/40 hover:bg-foreground/5 rounded-xl h-12 text-lg font-medium shadow-sm transition-all text-foreground"
-                                    onClick={() => window.location.href = `sms:${therapist.contactNumber}`}
-                                >
-                                    <MessageSquare className="mr-2 h-5 w-5" />
-                                    Send SMS
-                                </Button>
-                            )}
+                        <div className="flex flex-col gap-4">
+                            <Button
+                                className="w-full bg-eucalyptus hover:bg-eucalyptus/90 text-white rounded-xl h-12 text-lg font-medium shadow-md transition-all hover:-translate-y-1"
+                                onClick={() => {
+                                    if (user) {
+                                        router.push(`/messages?userId=${therapist.id}`);
+                                    } else {
+                                        router.push(`/login?redirect=/provider/${therapist.id}`);
+                                    }
+                                }}
+                            >
+                                <MessageCircle className="mr-2 h-5 w-5" />
+                                Chat via App
+                            </Button>
+                            <div className="flex gap-4">
+                                {therapist.contactNumber && (therapist.contactPreference === 'whatsapp' || therapist.contactPreference === 'any') && (
+                                    <Button
+                                        className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl h-12 text-lg font-medium shadow-md transition-all hover:-translate-y-1"
+                                        onClick={() => window.open(`https://wa.me/63${therapist.contactNumber!.replace(/^0/, '')}`, '_blank')}
+                                    >
+                                        <MessageCircle className="mr-2 h-5 w-5" />
+                                        Chat on WhatsApp
+                                    </Button>
+                                )}
+                                {therapist.contactNumber && (therapist.contactPreference === 'sms' || therapist.contactPreference === 'any') && (
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1 border-foreground/20 hover:border-foreground/40 hover:bg-foreground/5 rounded-xl h-12 text-lg font-medium shadow-sm transition-all text-foreground"
+                                        onClick={() => window.location.href = `sms:${therapist.contactNumber}`}
+                                    >
+                                        <MessageSquare className="mr-2 h-5 w-5" />
+                                        Send SMS
+                                    </Button>
+                                )}
+                            </div>
                         </div>
 
                         {/* BIO */}

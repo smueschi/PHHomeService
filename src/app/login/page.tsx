@@ -40,6 +40,8 @@ export default function LoginPage() {
 
             if (profile?.role === 'provider') {
                 router.push("/provider-dashboard");
+            } else if (profile?.role === 'admin') {
+                router.push("/admin");
             } else {
                 router.push("/profile");
             }
